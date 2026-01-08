@@ -6,7 +6,7 @@ Nix flake for managing Claude Code configuration across machines. Because your A
 
 - **Settings** - Sensible default permissions, disabled attribution, macOS notification hooks
 - **Commands** - Custom slash commands (`/reflect` for session notes)
-- **Skills** - Global skills including Anthropic's `skill-creator`
+- **Skills** - Global skills fetched from [Anthropic's official skills repo](https://github.com/anthropics/skills) (includes `skill-creator` with all scripts)
 
 ## Usage
 

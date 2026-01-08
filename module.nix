@@ -1,4 +1,4 @@
-{ self }:
+{ self, anthropic-skills }:
 { config, lib, pkgs, ... }:
 
 let
@@ -80,6 +80,9 @@ let
   # Path to this flake's source
   srcPath = self;
 
+  # Path to Anthropic's skill-creator
+  skillCreatorPath = "${anthropic-skills}/skills/skill-creator";
+
 in {
   options.programs.claude-config = {
     enable = lib.mkEnableOption "Claude Code configuration";
@@ -101,8 +104,10 @@ in {
     home.file.".claude/commands/reflect.md".source =
       "${srcPath}/commands/reflect.md";
 
-    # Skills
-    home.file.".claude/skills/skill-creator/SKILL.md".source =
-      "${srcPath}/skills/skill-creator/SKILL.md";
+    # Skills - skill-creator from Anthropic's official repo
+    home.file.".claude/skills/skill-creator" = {
+      source = skillCreatorPath;
+      recursive = true;
+    };
   };
 }
