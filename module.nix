@@ -60,10 +60,6 @@ let
       commit = "";
       pr = "";
     };
-    # Enable pre-installed plugins
-    enabledPlugins = {
-      "code-simplifier" = true;
-    };
   } // lib.optionalAttrs isDarwin {
     hooks = {
       Stop = [{
@@ -87,8 +83,12 @@ let
   # Path to Anthropic's skill-creator
   skillCreatorPath = "${anthropic-skills}/skills/skill-creator";
 
-  # Path to code-simplifier plugin from official plugins repo
-  codeSimplifierPath = "${claude-plugins-official}/plugins/code-simplifier";
+  # Convert code-simplifier plugin to skill format
+  # Plugin has agents/code-simplifier.md, skill needs SKILL.md
+  codeSimplifierSkill = pkgs.runCommand "code-simplifier-skill" {} ''
+    mkdir -p $out
+    cp ${claude-plugins-official}/plugins/code-simplifier/agents/code-simplifier.md $out/SKILL.md
+  '';
 
 in {
   options.programs.claude-config = {
@@ -117,11 +117,9 @@ in {
       recursive = true;
     };
 
-    # Plugins - code-simplifier from claude-plugins-official
-    # Plugins go to ~/.claude/plugins/ (not skills/)
-    # This plugin provides the code-simplifier agent for code clarity/maintainability
-    home.file.".claude/plugins/code-simplifier" = {
-      source = codeSimplifierPath;
+    # Skills - code-simplifier from claude-plugins-official (converted to skill format)
+    home.file.".claude/skills/code-simplifier" = {
+      source = codeSimplifierSkill;
       recursive = true;
     };
   };
