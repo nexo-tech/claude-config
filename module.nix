@@ -60,6 +60,10 @@ let
       commit = "";
       pr = "";
     };
+    # Enable pre-installed plugins
+    enabledPlugins = {
+      "code-simplifier" = true;
+    };
   } // lib.optionalAttrs isDarwin {
     hooks = {
       Stop = [{
