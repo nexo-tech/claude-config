@@ -113,8 +113,10 @@ in {
       recursive = true;
     };
 
-    # Skills - code-simplifier from claude-plugins-official
-    home.file.".claude/skills/code-simplifier" = {
+    # Plugins - code-simplifier from claude-plugins-official
+    # Plugins go to ~/.claude/plugins/ (not skills/)
+    # This plugin provides the code-simplifier agent for code clarity/maintainability
+    home.file.".claude/plugins/code-simplifier" = {
       source = codeSimplifierPath;
       recursive = true;
     };
