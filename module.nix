@@ -1,4 +1,4 @@
-{ self, anthropic-skills }:
+{ self, anthropic-skills, claude-plugins-official }:
 { config, lib, pkgs, ... }:
 
 let
@@ -83,6 +83,9 @@ let
   # Path to Anthropic's skill-creator
   skillCreatorPath = "${anthropic-skills}/skills/skill-creator";
 
+  # Path to code-simplifier plugin from official plugins repo
+  codeSimplifierPath = "${claude-plugins-official}/plugins/code-simplifier";
+
 in {
   options.programs.claude-config = {
     enable = lib.mkEnableOption "Claude Code configuration";
@@ -107,6 +110,12 @@ in {
     # Skills - skill-creator from Anthropic's official repo
     home.file.".claude/skills/skill-creator" = {
       source = skillCreatorPath;
+      recursive = true;
+    };
+
+    # Skills - code-simplifier from claude-plugins-official
+    home.file.".claude/skills/code-simplifier" = {
+      source = codeSimplifierPath;
       recursive = true;
     };
   };
