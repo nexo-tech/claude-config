@@ -1,4 +1,4 @@
-{ self, anthropic-skills, tgnotify }:
+{ self, anthropic-skills, claude-plugins-official, tgnotify }:
 { config, lib, pkgs, ... }:
 
 let
@@ -59,6 +59,9 @@ let
   # Path to Anthropic's skill-creator
   skillCreatorPath = "${anthropic-skills}/skills/skill-creator";
 
+  # Path to code-simplifier agent
+  codeSimplifierAgentPath = "${claude-plugins-official}/plugins/code-simplifier/agents/code-simplifier.md";
+
 in {
   options.programs.claude-config = {
     enable = lib.mkEnableOption "Claude Code configuration";
@@ -85,5 +88,8 @@ in {
       source = skillCreatorPath;
       recursive = true;
     };
+
+    # Agents - code-simplifier from Anthropic's official plugins repo
+    home.file.".claude/agents/code-simplifier.md".source = codeSimplifierAgentPath;
   };
 }

@@ -16,6 +16,40 @@
         "type": "github"
       }
     },
+    "claude-plugins-official": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1767923969,
+        "narHash": "sha256-dRhjF5MmByvg/0tixaiLHtdsT7aN9JHNVM9bLzyEhBg=",
+        "owner": "anthropics",
+        "repo": "claude-plugins-official",
+        "rev": "f1be96f0fb58d5aaf2840ca7d7036d5c0923742c",
+        "type": "github"
+      },
+      "original": {
+        "owner": "anthropics",
+        "repo": "claude-plugins-official",
+        "type": "github"
+      }
+    },
+    "flake-utils": {
+      "inputs": {
+        "systems": "systems"
+      },
+      "locked": {
+        "lastModified": 1731533236,
+        "narHash": "sha256-l0KFg5HjrsfsO/JpG+r7fRrqm12kzFHyUHqHCVpMMbI=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "11707dc2f618dd54ca8739b309ec4fc024de578b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1767799921,
@@ -35,7 +69,45 @@
     "root": {
       "inputs": {
         "anthropic-skills": "anthropic-skills",
-        "nixpkgs": "nixpkgs"
+        "claude-plugins-official": "claude-plugins-official",
+        "nixpkgs": "nixpkgs",
+        "tgnotify": "tgnotify"
+      }
+    },
+    "systems": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
+      }
+    },
+    "tgnotify": {
+      "inputs": {
+        "flake-utils": "flake-utils",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1767989367,
+        "narHash": "sha256-xSRup4k7ahA4mOWYp+eX8Mh2/sgyf3ObK5yUmZ2jcjk=",
+        "owner": "nexo-tech",
+        "repo": "tgnotify",
+        "rev": "2570f72a3d41aa8cc3054895ac0063b3fcd3f3d2",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nexo-tech",
+        "repo": "tgnotify",
+        "type": "github"
       }
     }
   },
