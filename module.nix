@@ -62,6 +62,14 @@ let
   # Path to code-simplifier agent
   codeSimplifierAgentPath = "${claude-plugins-official}/plugins/code-simplifier/agents/code-simplifier.md";
 
+  # Go skills plugin for ccgo command
+  goSkillsPluginPath = "${srcPath}/go-skills-plugin";
+
+  # Create ccgo wrapper script that loads Go skills plugin
+  ccgoScript = pkgs.writeShellScriptBin "ccgo" ''
+    exec claude --plugin-dir ${goSkillsPluginPath} "$@"
+  '';
+
 in {
   options.programs.claude-config = {
     enable = lib.mkEnableOption "Claude Code configuration";
@@ -75,6 +83,9 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
+    # Add ccgo command to PATH
+    home.packages = [ ccgoScript ];
+
     # Claude Code settings.json
     home.file.".claude/settings.json".source =
       pkgs.writeText "claude-settings.json" settingsJson;
