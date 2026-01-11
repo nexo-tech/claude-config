@@ -1,4 +1,4 @@
-{ self, anthropic-skills, claude-plugins-official, tgnotify }:
+{ self, anthropic-skills, tgnotify }:
 { config, lib, pkgs, ... }:
 
 let
@@ -59,13 +59,6 @@ let
   # Path to Anthropic's skill-creator
   skillCreatorPath = "${anthropic-skills}/skills/skill-creator";
 
-  # Convert code-simplifier plugin to skill format
-  # Plugin has agents/code-simplifier.md, skill needs SKILL.md
-  codeSimplifierSkill = pkgs.runCommand "code-simplifier-skill" {} ''
-    mkdir -p $out
-    cp ${claude-plugins-official}/plugins/code-simplifier/agents/code-simplifier.md $out/SKILL.md
-  '';
-
 in {
   options.programs.claude-config = {
     enable = lib.mkEnableOption "Claude Code configuration";
@@ -90,12 +83,6 @@ in {
     # Skills - skill-creator from Anthropic's official repo
     home.file.".claude/skills/skill-creator" = {
       source = skillCreatorPath;
-      recursive = true;
-    };
-
-    # Skills - code-simplifier from claude-plugins-official (converted to skill format)
-    home.file.".claude/skills/code-simplifier" = {
-      source = codeSimplifierSkill;
       recursive = true;
     };
   };

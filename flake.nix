@@ -10,12 +10,6 @@
       flake = false;
     };
 
-    # Anthropic's official plugins repository
-    claude-plugins-official = {
-      url = "github:anthropics/claude-plugins-official";
-      flake = false;
-    };
-
     # Telegram notifications for Claude Code hooks
     tgnotify = {
       url = "github:nexo-tech/tgnotify";
@@ -23,9 +17,9 @@
     };
   };
 
-  outputs = { self, nixpkgs, anthropic-skills, claude-plugins-official, tgnotify }: {
+  outputs = { self, nixpkgs, anthropic-skills, tgnotify }: {
     homeManagerModules.default = import ./module.nix {
-      inherit self anthropic-skills claude-plugins-official tgnotify;
+      inherit self anthropic-skills tgnotify;
     };
   };
 }
