@@ -1,5 +1,5 @@
 {
   "name": "go-skills",
-  "description": "Go development skills for clean architecture, testing, concurrency, and more",
-  "version": "1.0.0"
+  "description": "Go development skills: clean architecture, testing, concurrency, HTMX frontend, Templ templates, SSE streaming, and dashboard patterns",
+  "version": "2.0.0"
 }
