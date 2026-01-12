@@ -24,28 +24,69 @@ Build admin dashboards and control panels with Go, HTMX, and clawde. Real-time u
 ```templ
 templ DashboardLayout(title string, activeNav string) {
     <!DOCTYPE html>
-    <html lang="en">
+    <html lang="en" data-theme="light">
     <head>
         <meta charset="UTF-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
         <title>{ title } | Dashboard</title>
-        <link rel="stylesheet" href="/static/css/tailwind.css"/>
-        <script src="/static/js/htmx.min.js"></script>
-        <script src="/static/js/sse.js"></script>
+        <!-- Pico CSS from CDN -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"/>
+        <link rel="stylesheet" href="/static/css/dashboard.css"/>
     </head>
-    <body class="bg-gray-50">
-        <div class="flex h-screen">
+    <body>
+        <div class="dashboard-layout">
             @Sidebar(activeNav)
-            <main class="flex-1 overflow-auto">
+            <main class="container">
                 @TopBar(title)
-                <div class="p-6">
-                    { children... }
-                </div>
+                { children... }
             </main>
         </div>
+        <!-- HTMX and SSE extension from CDN -->
+        <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.8/dist/htmx.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/htmx-ext-sse@2.2.2/sse.js"></script>
     </body>
     </html>
 }
+```
+
+**Dashboard CSS** (static/css/dashboard.css):
+```css
+/* Dashboard layout */
+.dashboard-layout {
+    display: grid;
+    grid-template-columns: 16rem 1fr;
+    min-height: 100vh;
+}
+
+/* Sidebar styling */
+.dashboard-sidebar {
+    background: var(--pico-contrast-background);
+    color: var(--pico-contrast);
+    padding: 1rem;
+}
+
+.dashboard-sidebar nav ul {
+    list-style: none;
+    padding: 0;
+}
+
+.dashboard-sidebar nav a {
+    display: block;
+    padding: 0.75rem 1rem;
+    color: inherit;
+    text-decoration: none;
+    border-radius: var(--pico-border-radius);
+}
+
+.dashboard-sidebar nav a:hover,
+.dashboard-sidebar nav a.active {
+    background: rgba(255,255,255,0.1);
+}
+
+/* Grid utilities */
+.grid-4 { grid-template-columns: repeat(4, 1fr); }
+.grid-3 { grid-template-columns: repeat(3, 1fr); }
+.grid-2 { grid-template-columns: repeat(2, 1fr); }
 ```
 
 ### Sidebar Navigation
@@ -66,25 +107,24 @@ var navItems = []NavItem{
 }
 
 templ Sidebar(activeNav string) {
-    <aside class="w-64 bg-gray-900 text-white">
-        <div class="p-4">
-            <h1 class="text-xl font-bold">Agent Dashboard</h1>
-        </div>
-        <nav class="mt-4">
-            for _, item := range navItems {
-                <a
-                    href={ templ.SafeURL(item.Href) }
-                    hx-boost="true"
-                    class={
-                        "flex items-center px-4 py-3 text-sm",
-                        templ.KV("bg-gray-800 text-white", activeNav == item.Name),
-                        templ.KV("text-gray-400 hover:bg-gray-800", activeNav != item.Name),
-                    }
-                >
-                    @Icon(item.Icon, "w-5 h-5 mr-3")
-                    { item.Name }
-                </a>
-            }
+    <aside class="dashboard-sidebar">
+        <hgroup>
+            <h1>Agent Dashboard</h1>
+        </hgroup>
+        <nav>
+            <ul>
+                for _, item := range navItems {
+                    <li>
+                        <a
+                            href={ templ.SafeURL(item.Href) }
+                            hx-boost="true"
+                            class={ templ.KV("active", activeNav == item.Name) }
+                        >
+                            { item.Name }
+                        </a>
+                    </li>
+                }
+            </ul>
         </nav>
     </aside>
 }
@@ -177,44 +217,30 @@ templ KanbanCard(item Item) {
 ### Status Badges
 
 ```templ
-func statusColor(status string) string {
-    switch status {
-    case "success", "merged", "completed":
-        return "bg-green-100 text-green-800"
-    case "running", "in_progress":
-        return "bg-blue-100 text-blue-800"
-    case "failed", "error":
-        return "bg-red-100 text-red-800"
-    case "pending", "waiting":
-        return "bg-yellow-100 text-yellow-800"
-    default:
-        return "bg-gray-100 text-gray-800"
-    }
-}
-
+// Use Pico's semantic elements for status colors
 templ StatusBadge(status string) {
-    <span class={ "px-2 py-0.5 rounded-full text-xs font-medium", statusColor(status) }>
-        if status == "running" {
-            <span class="inline-block w-2 h-2 bg-blue-500 rounded-full animate-pulse mr-1"></span>
-        }
-        { status }
-    </span>
+    switch status {
+        case "success", "merged", "completed":
+            <ins>{ status }</ins>
+        case "running", "in_progress":
+            <span aria-busy="true">{ status }</span>
+        case "failed", "error":
+            <del>{ status }</del>
+        case "pending", "waiting":
+            <mark>{ status }</mark>
+        default:
+            <span>{ status }</span>
+    }
 }
 
 templ PriorityBadge(priority string) {
     switch priority {
-    case "high":
-        <span class="text-red-500">
-            @Icon("alert-circle", "w-4 h-4")
-        </span>
-    case "medium":
-        <span class="text-yellow-500">
-            @Icon("minus-circle", "w-4 h-4")
-        </span>
-    default:
-        <span class="text-gray-400">
-            @Icon("circle", "w-4 h-4")
-        </span>
+        case "high":
+            <del title="High priority">!</del>
+        case "medium":
+            <mark title="Medium priority">-</mark>
+        default:
+            <span title="Low priority">o</span>
     }
 }
 ```
@@ -232,29 +258,30 @@ type Column struct {
     Sortable bool
 }
 
+// Pico CSS styles tables semantically
 templ DataTable(columns []Column, rows []map[string]any, sortBy string, sortDir string) {
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
+    <figure>
+        <table>
+            <thead>
                 <tr>
                     for _, col := range columns {
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th scope="col">
                             if col.Sortable {
-                                <button
+                                <a
+                                    href="#"
                                     hx-get={ fmt.Sprintf("/api/table?sort=%s&dir=%s", col.Key, toggleDir(sortDir)) }
-                                    hx-target="closest table"
+                                    hx-target="closest figure"
                                     hx-swap="outerHTML"
-                                    class="flex items-center gap-1 hover:text-gray-700"
                                 >
                                     { col.Label }
                                     if sortBy == col.Key {
                                         if sortDir == "asc" {
-                                            @Icon("chevron-up", "w-4 h-4")
+                                            ↑
                                         } else {
-                                            @Icon("chevron-down", "w-4 h-4")
+                                            ↓
                                         }
                                     }
-                                </button>
+                                </a>
                             } else {
                                 { col.Label }
                             }
@@ -262,19 +289,17 @@ templ DataTable(columns []Column, rows []map[string]any, sortBy string, sortDir 
                     }
                 </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody>
                 for _, row := range rows {
-                    <tr class="hover:bg-gray-50">
+                    <tr>
                         for _, col := range columns {
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                { fmt.Sprint(row[col.Key]) }
-                            </td>
+                            <td>{ fmt.Sprint(row[col.Key]) }</td>
                         }
                     </tr>
                 }
             </tbody>
         </table>
-    </div>
+    </figure>
 }
 
 func toggleDir(dir string) string {
@@ -289,37 +314,37 @@ func toggleDir(dir string) string {
 
 ```templ
 templ TableWithControls(data TableData) {
-    <div class="space-y-4">
-        <div class="flex gap-4">
-            <input
-                type="search"
-                name="q"
-                placeholder="Search..."
-                value={ data.Query }
-                hx-get="/api/table"
-                hx-trigger="keyup changed delay:300ms"
-                hx-target="#table-container"
-                hx-include="[name='status']"
-                class="input w-64"
-            />
-            <select
-                name="status"
-                hx-get="/api/table"
-                hx-trigger="change"
-                hx-target="#table-container"
-                hx-include="[name='q']"
-                class="input w-40"
-            >
-                <option value="">All Status</option>
-                <option value="active" selected?={ data.Status == "active" }>Active</option>
-                <option value="pending" selected?={ data.Status == "pending" }>Pending</option>
-                <option value="completed" selected?={ data.Status == "completed" }>Completed</option>
-            </select>
-        </div>
+    <article>
+        <header>
+            <div class="grid">
+                <input
+                    type="search"
+                    name="q"
+                    placeholder="Search..."
+                    value={ data.Query }
+                    hx-get="/api/table"
+                    hx-trigger="keyup changed delay:300ms"
+                    hx-target="#table-container"
+                    hx-include="[name='status']"
+                />
+                <select
+                    name="status"
+                    hx-get="/api/table"
+                    hx-trigger="change"
+                    hx-target="#table-container"
+                    hx-include="[name='q']"
+                >
+                    <option value="">All Status</option>
+                    <option value="active" selected?={ data.Status == "active" }>Active</option>
+                    <option value="pending" selected?={ data.Status == "pending" }>Pending</option>
+                    <option value="completed" selected?={ data.Status == "completed" }>Completed</option>
+                </select>
+            </div>
+        </header>
         <div id="table-container">
             @DataTable(data.Columns, data.Rows, data.SortBy, data.SortDir)
         </div>
-    </div>
+    </article>
 }
 ```
 
@@ -538,7 +563,7 @@ templ ToolResultCard(name string, result string, success bool) {
 ```templ
 templ StatsGrid() {
     <div
-        class="grid grid-cols-4 gap-4"
+        class="grid"
         hx-get="/api/stats"
         hx-trigger="load, every 30s"
         hx-swap="innerHTML"
@@ -550,28 +575,26 @@ templ StatsGrid() {
     </div>
 }
 
+// Use Pico's article for card-like stat display
 templ StatCard(label string, value string, trend string, change string) {
-    <div class="bg-white rounded-lg shadow p-4">
-        <p class="text-sm text-gray-500">{ label }</p>
-        <div class="flex items-end justify-between mt-2">
-            <span class="text-2xl font-bold text-gray-900">{ value }</span>
+    <article>
+        <header>
+            <small>{ label }</small>
+        </header>
+        <hgroup>
+            <h2>{ value }</h2>
             if change != "" {
-                <span class={
-                    "text-sm flex items-center",
-                    templ.KV("text-green-500", trend == "up"),
-                    templ.KV("text-red-500", trend == "down"),
-                    templ.KV("text-gray-400", trend == "neutral"),
-                }>
-                    if trend == "up" {
-                        @Icon("trending-up", "w-4 h-4 mr-1")
-                    } else if trend == "down" {
-                        @Icon("trending-down", "w-4 h-4 mr-1")
-                    }
-                    { change }
-                </span>
+                switch trend {
+                    case "up":
+                        <p><ins>↑ { change }</ins></p>
+                    case "down":
+                        <p><del>↓ { change }</del></p>
+                    default:
+                        <p>{ change }</p>
+                }
             }
-        </div>
-    </div>
+        </hgroup>
+    </article>
 }
 ```
 
@@ -786,10 +809,11 @@ npx @pqina/svg-sprite-generator --input ./icons/*.svg --output ./static/icons.sv
 ## Integration
 
 This skill works with:
+- **go-project-bootstrap**: Initial project setup
 - **go-htmx-core**: Handler patterns
 - **go-templ-components**: Component building
 - **go-htmx-sse**: Real-time streaming
 - **go-htmx-forms**: Form components
-- **clawde SDK**: Agent orchestration
+- **go-pico-embed**: Asset embedding and deployment
 
 Reference this skill when building admin UIs and agent control panels.

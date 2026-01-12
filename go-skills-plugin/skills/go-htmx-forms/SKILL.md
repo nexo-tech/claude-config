@@ -56,9 +56,10 @@ Validate fields as user types or on blur.
 ### Input with Validation
 
 ```templ
+// Pico CSS uses aria-invalid for validation styling
 templ EmailField(email string, err string) {
-    <div class="field">
-        <label for="email">Email</label>
+    <label for="email">
+        Email
         <input
             type="email"
             id="email"
@@ -66,12 +67,12 @@ templ EmailField(email string, err string) {
             value={ email }
             hx-post="/validate/email"
             hx-trigger="blur changed"
-            hx-target="next .error"
+            hx-target="#email-error"
             hx-swap="innerHTML"
-            class={ "input", templ.KV("border-red-500", err != "") }
+            aria-invalid={ err != "" }
         />
-        <span class="error text-red-500 text-sm">{ err }</span>
-    </div>
+        <small id="email-error">{ err }</small>
+    </label>
 }
 ```
 
@@ -197,14 +198,13 @@ type FieldProps struct {
     Required    bool
 }
 
+// Pico CSS styles form elements semantically
 templ Field(props FieldProps) {
-    <div class="mb-4">
-        <label for={ props.Name } class="block text-sm font-medium text-gray-700 mb-1">
-            { props.Label }
-            if props.Required {
-                <span class="text-red-500">*</span>
-            }
-        </label>
+    <label for={ props.Name }>
+        { props.Label }
+        if props.Required {
+            <abbr title="required">*</abbr>
+        }
         <input
             type={ props.Type }
             id={ props.Name }
@@ -215,13 +215,11 @@ templ Field(props FieldProps) {
             hx-post={ "/validate/" + props.Name }
             hx-trigger="blur changed delay:300ms"
             hx-target={ "#" + props.Name + "-error" }
-            class={
-                "input w-full",
-                templ.KV("border-red-500 focus:ring-red-500", props.Error != ""),
-            }
+            aria-invalid={ props.Error != "" }
+            aria-describedby={ props.Name + "-error" }
         />
-        <p id={ props.Name + "-error" } class="mt-1 text-sm text-red-500">{ props.Error }</p>
-    </div>
+        <small id={ props.Name + "-error" }>{ props.Error }</small>
+    </label>
 }
 ```
 
@@ -229,14 +227,12 @@ templ Field(props FieldProps) {
 
 ```templ
 templ SelectField(name string, label string, options []Option, selected string, err string) {
-    <div class="mb-4">
-        <label for={ name } class="block text-sm font-medium text-gray-700 mb-1">
-            { label }
-        </label>
+    <label for={ name }>
+        { label }
         <select
             id={ name }
             name={ name }
-            class={ "input w-full", templ.KV("border-red-500", err != "") }
+            aria-invalid={ err != "" }
         >
             <option value="">Select...</option>
             for _, opt := range options {
@@ -246,9 +242,9 @@ templ SelectField(name string, label string, options []Option, selected string, 
             }
         </select>
         if err != "" {
-            <p class="mt-1 text-sm text-red-500">{ err }</p>
+            <small>{ err }</small>
         }
-    </div>
+    </label>
 }
 ```
 
@@ -256,20 +252,18 @@ templ SelectField(name string, label string, options []Option, selected string, 
 
 ```templ
 templ TextareaField(name string, label string, value string, err string, rows int) {
-    <div class="mb-4">
-        <label for={ name } class="block text-sm font-medium text-gray-700 mb-1">
-            { label }
-        </label>
+    <label for={ name }>
+        { label }
         <textarea
             id={ name }
             name={ name }
             rows={ fmt.Sprint(rows) }
-            class={ "input w-full", templ.KV("border-red-500", err != "") }
+            aria-invalid={ err != "" }
         >{ value }</textarea>
         if err != "" {
-            <p class="mt-1 text-sm text-red-500">{ err }</p>
+            <small>{ err }</small>
         }
-    </div>
+    </label>
 }
 ```
 
@@ -301,7 +295,6 @@ templ UserForm(data UserFormData, errors UserFormErrors, isEdit bool) {
         }
         hx-target="this"
         hx-swap="outerHTML"
-        class="space-y-4"
     >
         @Field(FieldProps{
             Name:     "name",
@@ -327,15 +320,15 @@ templ UserForm(data UserFormData, errors UserFormErrors, isEdit bool) {
             {Value: "mod", Label: "Moderator"},
         }, data.Role, errors.Role)
 
-        <div class="flex gap-2">
-            <button type="submit" class="btn btn-primary">
+        <div class="grid">
+            <button type="submit">
                 if isEdit {
                     Update
                 } else {
                     Create
                 }
             </button>
-            <a href="/users" class="btn btn-secondary">Cancel</a>
+            <a href="/users" role="button" class="secondary">Cancel</a>
         </div>
     </form>
 }
@@ -384,31 +377,31 @@ func handleUserForm(w http.ResponseWriter, r *http.Request) {
 
 ## Loading States
 
-### Button with Spinner
+### Button with Loading State
 
 ```templ
+// Pico CSS supports aria-busy for native loading spinners
 templ SubmitButton(text string) {
-    <button type="submit" class="btn btn-primary relative">
-        <span class="htmx-indicator absolute inset-0 flex items-center justify-center">
-            @Spinner()
-        </span>
+    <button type="submit" hx-indicator="this" hx-disabled-elt="this">
         <span class="htmx-hide-on-request">{ text }</span>
+        <span class="htmx-indicator" aria-busy="true">Submitting...</span>
     </button>
-}
-
-templ Spinner() {
-    <svg class="animate-spin h-5 w-5" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-    </svg>
 }
 ```
 
-CSS:
+CSS (add to custom.css):
 ```css
 .htmx-indicator { display: none; }
-.htmx-request .htmx-indicator { display: flex; }
-.htmx-request .htmx-hide-on-request { visibility: hidden; }
+.htmx-request .htmx-indicator { display: inline-block; }
+.htmx-request .htmx-hide-on-request { display: none; }
+```
+
+Alternative using Pico's built-in busy state:
+```html
+<!-- Button shows spinner automatically when aria-busy is true -->
+<button type="submit" aria-busy="false" hx-on::htmx:before-request="this.ariaBusy='true'" hx-on::htmx:after-request="this.ariaBusy='false'">
+    Submit
+</button>
 ```
 
 ### Disabled During Request
@@ -441,14 +434,16 @@ templ FormWithSummary(data FormData, errors map[string]string) {
 }
 
 templ ErrorSummary(errors map[string]string) {
-    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-        <h3 class="text-red-800 font-medium">Please fix the following errors:</h3>
-        <ul class="mt-2 text-sm text-red-700 list-disc list-inside">
+    <article aria-invalid="true">
+        <header>
+            <strong>Please fix the following errors:</strong>
+        </header>
+        <ul>
             for field, msg := range errors {
-                <li>{ msg }</li>
+                <li><del>{ msg }</del></li>
             }
         </ul>
-    </div>
+    </article>
 }
 ```
 
@@ -486,8 +481,11 @@ templ FileUploadForm() {
         hx-encoding="multipart/form-data"
         hx-target="#upload-result"
     >
-        <input type="file" name="file" accept=".pdf,.doc,.docx" required/>
-        <button type="submit" class="btn btn-primary">Upload</button>
+        <label>
+            Choose file
+            <input type="file" name="file" accept=".pdf,.doc,.docx" required/>
+        </label>
+        <button type="submit">Upload</button>
     </form>
     <div id="upload-result"></div>
 }
@@ -535,12 +533,16 @@ func handleUpload(w http.ResponseWriter, r *http.Request) {
 
 ```templ
 templ WizardStep1(data WizardData) {
-    <div id="wizard">
-        <div class="steps">
-            <span class="step active">1. Personal</span>
-            <span class="step">2. Address</span>
-            <span class="step">3. Review</span>
-        </div>
+    <article id="wizard">
+        <header>
+            <nav>
+                <ul>
+                    <li><strong>1. Personal</strong></li>
+                    <li>2. Address</li>
+                    <li>3. Review</li>
+                </ul>
+            </nav>
+        </header>
 
         <form hx-post="/wizard/step2" hx-target="#wizard" hx-swap="outerHTML">
             <input type="hidden" name="step" value="1"/>
@@ -548,18 +550,22 @@ templ WizardStep1(data WizardData) {
             @Field(FieldProps{Name: "name", Label: "Name", Value: data.Name, Required: true})
             @Field(FieldProps{Name: "email", Label: "Email", Type: "email", Value: data.Email, Required: true})
 
-            <button type="submit" class="btn btn-primary">Next</button>
+            <button type="submit">Next</button>
         </form>
-    </div>
+    </article>
 }
 
 templ WizardStep2(data WizardData) {
-    <div id="wizard">
-        <div class="steps">
-            <span class="step done">1. Personal</span>
-            <span class="step active">2. Address</span>
-            <span class="step">3. Review</span>
-        </div>
+    <article id="wizard">
+        <header>
+            <nav>
+                <ul>
+                    <li><ins>1. Personal</ins></li>
+                    <li><strong>2. Address</strong></li>
+                    <li>3. Review</li>
+                </ul>
+            </nav>
+        </header>
 
         <form hx-post="/wizard/step3" hx-target="#wizard" hx-swap="outerHTML">
             <!-- Preserve previous data -->
@@ -569,14 +575,14 @@ templ WizardStep2(data WizardData) {
             @Field(FieldProps{Name: "address", Label: "Address", Value: data.Address})
             @Field(FieldProps{Name: "city", Label: "City", Value: data.City})
 
-            <div class="flex gap-2">
-                <button type="button" hx-get="/wizard/step1" hx-target="#wizard" class="btn btn-secondary">
+            <div class="grid">
+                <button type="button" hx-get="/wizard/step1" hx-target="#wizard" class="secondary">
                     Back
                 </button>
-                <button type="submit" class="btn btn-primary">Next</button>
+                <button type="submit">Next</button>
             </div>
         </form>
-    </div>
+    </article>
 }
 ```
 
@@ -699,8 +705,9 @@ func handleSubmit(w http.ResponseWriter, r *http.Request) {
 ## Integration
 
 This skill works with:
+- **go-project-bootstrap**: Initial project setup
 - **go-htmx-core**: Form submission patterns
 - **go-templ-components**: Reusable form components
-- **go-embed-tailwind**: Form styling with Tailwind
+- **go-pico-embed**: Asset embedding and deployment
 
 Reference this skill when building any form in Go + HTMX.

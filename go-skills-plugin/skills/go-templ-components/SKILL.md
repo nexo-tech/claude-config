@@ -136,59 +136,82 @@ templ Table(rows []Row) {
 
 ---
 
-## CSS Class Helpers
+## Pico CSS Styling
 
-### Dynamic Classes with templ.KV
+Pico CSS styles semantic HTML elements directly - minimal classes needed.
 
-```templ
-templ Button(text string, primary bool, disabled bool) {
-    <button
-        class={
-            "btn",
-            templ.KV("btn-primary", primary),
-            templ.KV("btn-secondary", !primary),
-            templ.KV("opacity-50 cursor-not-allowed", disabled),
-        }
-        disabled?={ disabled }
-    >
-        { text }
-    </button>
-}
-```
-
-### Using templ.Classes
+### Button Variants
 
 ```templ
-templ Card(highlight bool) {
-    <div class={ templ.Classes("card", "p-4", map[string]bool{
-        "border-blue-500": highlight,
-        "border-gray-200": !highlight,
-    }) }>
-        { children... }
-    </div>
-}
-```
-
-### Computed Class Function
-
-```templ
-func statusClass(status string) string {
-    switch status {
-    case "success":
-        return "bg-green-100 text-green-800"
-    case "error":
-        return "bg-red-100 text-red-800"
-    case "pending":
-        return "bg-yellow-100 text-yellow-800"
-    default:
-        return "bg-gray-100 text-gray-800"
+// Pico button variants: default (primary), secondary, contrast, outline
+templ Button(text string, variant string, disabled bool) {
+    if variant == "" {
+        <button disabled?={ disabled } aria-busy?={ disabled }>{ text }</button>
+    } else {
+        <button class={ variant } disabled?={ disabled } aria-busy?={ disabled }>{ text }</button>
     }
 }
 
-templ StatusBadge(status string) {
-    <span class={ "badge", statusClass(status) }>
-        { status }
-    </span>
+// Usage:
+// @Button("Submit", "", false)           // Primary
+// @Button("Cancel", "secondary", false)  // Secondary
+// @Button("Delete", "contrast", false)   // High contrast
+// @Button("Edit", "outline", false)      // Outline
+```
+
+### Card Component
+
+```templ
+// Pico uses semantic <article> for card-like styling
+templ Card(title string) {
+    <article>
+        <header>
+            <h3>{ title }</h3>
+        </header>
+        { children... }
+    </article>
+}
+
+// Card with highlight using data attribute
+templ CardHighlight(title string, highlight bool) {
+    <article data-highlight?={ highlight }>
+        <header>
+            <h3>{ title }</h3>
+        </header>
+        { children... }
+    </article>
+}
+```
+
+### Status Badge
+
+```templ
+// Use semantic HTML elements for status colors
+templ StatusBadge(status string, label string) {
+    switch status {
+        case "success":
+            <ins>{ label }</ins>
+        case "error":
+            <del>{ label }</del>
+        case "warning":
+            <mark>{ label }</mark>
+        default:
+            <span>{ label }</span>
+    }
+}
+```
+
+### Dynamic Classes (when needed)
+
+```templ
+// Use templ.KV for conditional classes with Pico
+templ AlertBox(message string, isError bool) {
+    <div
+        role="alert"
+        class={ templ.KV("contrast", isError) }
+    >
+        { message }
+    </div>
 }
 ```
 
@@ -275,20 +298,24 @@ package layouts
 
 templ Base(title string) {
     <!DOCTYPE html>
-    <html lang="en">
+    <html lang="en" data-theme="light">
     <head>
         <meta charset="UTF-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
         <title>{ title }</title>
-        <link rel="stylesheet" href="/static/css/tailwind.css"/>
-        <script src="/static/htmx.min.js"></script>
+        <!-- Pico CSS from CDN -->
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css"/>
+        <!-- Custom overrides -->
+        <link rel="stylesheet" href="/static/css/custom.css"/>
     </head>
-    <body class="bg-gray-50">
+    <body>
         @Nav()
-        <main class="container mx-auto px-4 py-8">
+        <main class="container">
             { children... }
         </main>
         @Footer()
+        <!-- HTMX from CDN -->
+        <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.8/dist/htmx.min.js"></script>
     </body>
     </html>
 }
@@ -305,9 +332,12 @@ import "myapp/templates/components"
 
 templ HomePage(user User, items []Item) {
     @layouts.Base("Home") {
-        <h1 class="text-2xl font-bold mb-4">Welcome, { user.Name }</h1>
+        <hgroup>
+            <h1>Welcome, { user.Name }</h1>
+            <p>Your dashboard</p>
+        </hgroup>
 
-        <div class="grid grid-cols-3 gap-4">
+        <div class="grid">
             for _, item := range items {
                 @components.ItemCard(item)
             }
@@ -339,18 +369,25 @@ templ ItemsList(items []Item) {
     }
 }
 
-// Single item fragment
+// Single item fragment using Pico's article styling
 templ ItemCard(item Item) {
-    <div id={ "item-" + item.ID } class="card">
-        <h3>{ item.Name }</h3>
-        <button
-            hx-delete={ "/items/" + item.ID }
-            hx-target={ "#item-" + item.ID }
-            hx-swap="outerHTML"
-        >
-            Delete
-        </button>
-    </div>
+    <article id={ "item-" + item.ID }>
+        <header>
+            <h3>{ item.Name }</h3>
+        </header>
+        <p>{ item.Description }</p>
+        <footer>
+            <button
+                class="secondary"
+                hx-delete={ "/items/" + item.ID }
+                hx-target={ "#item-" + item.ID }
+                hx-swap="outerHTML"
+                hx-confirm="Delete this item?"
+            >
+                Delete
+            </button>
+        </footer>
+    </article>
 }
 ```
 
@@ -495,18 +532,19 @@ templ MarkdownContent(html string) {
 ### Showing Errors
 
 ```templ
+// Pico CSS uses aria-invalid for form validation styling
 templ FormField(name string, value string, err string) {
-    <div class="field">
-        <label>{ name }</label>
+    <label>
+        { name }
         <input
             name={ strings.ToLower(name) }
             value={ value }
-            class={ templ.KV("border-red-500", err != "") }
+            aria-invalid={ err != "" }
         />
         if err != "" {
-            <span class="text-red-500 text-sm">{ err }</span>
+            <small>{ err }</small>
         }
-    </div>
+    </label>
 }
 ```
 
@@ -515,11 +553,15 @@ templ FormField(name string, value string, err string) {
 ```templ
 templ ErrorPage(code int, message string) {
     @layouts.Base(fmt.Sprintf("Error %d", code)) {
-        <div class="text-center py-20">
-            <h1 class="text-6xl font-bold text-gray-300">{ fmt.Sprintf("%d", code) }</h1>
-            <p class="text-xl text-gray-600 mt-4">{ message }</p>
-            <a href="/" class="btn btn-primary mt-8">Go Home</a>
-        </div>
+        <article>
+            <header>
+                <hgroup>
+                    <h1>{ fmt.Sprintf("%d", code) }</h1>
+                    <p>{ message }</p>
+                </hgroup>
+            </header>
+            <a href="/" role="button">Go Home</a>
+        </article>
     }
 }
 ```
@@ -569,49 +611,52 @@ type CardProps struct {
 }
 
 templ Card(props CardProps) {
-    <div class="card">
-        <img src={ props.ImageURL } alt={ props.Title }/>
-        <h3>{ props.Title }</h3>
+    <article>
+        if props.ImageURL != "" {
+            <img src={ props.ImageURL } alt={ props.Title }/>
+        }
+        <header>
+            <h3>{ props.Title }</h3>
+        </header>
         <p>{ props.Description }</p>
-        <div class="tags">
-            for _, tag := range props.Tags {
-                <span class="tag">{ tag }</span>
-            }
-        </div>
-        <a href={ templ.SafeURL(props.Link) }>Read more</a>
-    </div>
+        if len(props.Tags) > 0 {
+            <footer>
+                for _, tag := range props.Tags {
+                    <mark>{ tag }</mark>
+                }
+            </footer>
+        }
+        <a href={ templ.SafeURL(props.Link) } role="button" class="outline">Read more</a>
+    </article>
 }
 ```
 
 ### Enum-like Types
 
 ```templ
+// Pico CSS button variants
 type ButtonVariant string
 
 const (
-    ButtonPrimary   ButtonVariant = "primary"
+    ButtonPrimary   ButtonVariant = ""          // Default Pico styling
     ButtonSecondary ButtonVariant = "secondary"
-    ButtonDanger    ButtonVariant = "danger"
+    ButtonContrast  ButtonVariant = "contrast"
+    ButtonOutline   ButtonVariant = "outline"
 )
 
-func (v ButtonVariant) Class() string {
-    switch v {
-    case ButtonPrimary:
-        return "bg-blue-600 text-white"
-    case ButtonSecondary:
-        return "bg-gray-200 text-gray-800"
-    case ButtonDanger:
-        return "bg-red-600 text-white"
-    default:
-        return "bg-gray-200"
+templ Button(text string, variant ButtonVariant) {
+    if variant == "" {
+        <button>{ text }</button>
+    } else {
+        <button class={ string(variant) }>{ text }</button>
     }
 }
 
-templ Button(text string, variant ButtonVariant) {
-    <button class={ "btn", variant.Class() }>
-        { text }
-    </button>
-}
+// Usage:
+// @Button("Submit", ButtonPrimary)
+// @Button("Cancel", ButtonSecondary)
+// @Button("Delete", ButtonContrast)
+// @Button("Edit", ButtonOutline)
 ```
 
 ---
@@ -636,35 +681,38 @@ templ Icon(name string, size string) {
 
 ```templ
 templ EmptyState(title string, description string) {
-    <div class="text-center py-12">
-        <svg class="mx-auto h-12 w-12 text-gray-400">...</svg>
-        <h3 class="mt-2 text-sm font-medium text-gray-900">{ title }</h3>
-        <p class="mt-1 text-sm text-gray-500">{ description }</p>
+    <article>
+        <header>
+            <h3>{ title }</h3>
+        </header>
+        <p>{ description }</p>
         { children... }
-    </div>
+    </article>
 }
 
 // Usage
 @EmptyState("No items", "Get started by creating a new item.") {
-    <button class="btn btn-primary mt-4">Create Item</button>
+    <button>Create Item</button>
 }
 ```
 
 ### Loading Skeleton
 
 ```templ
-templ SkeletonCard() {
-    <div class="card animate-pulse">
-        <div class="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-        <div class="h-4 bg-gray-200 rounded w-1/2"></div>
-    </div>
+// Use Pico's aria-busy for loading states
+templ LoadingCard() {
+    <article aria-busy="true">
+        Loading...
+    </article>
 }
 
 templ ItemsListWithLoading(items []Item, loading bool) {
     if loading {
         for i := 0; i < 3; i++ {
-            @SkeletonCard()
+            @LoadingCard()
         }
+    } else if len(items) == 0 {
+        @EmptyState("No items", "Create your first item to get started.")
     } else {
         for _, item := range items {
             @ItemCard(item)
@@ -678,9 +726,10 @@ templ ItemsListWithLoading(items []Item, loading bool) {
 ## Integration
 
 This skill works with:
+- **go-project-bootstrap**: Initial project setup
 - **go-htmx-core**: HTMX attributes and patterns
 - **go-htmx-sse**: Real-time streaming components
 - **go-htmx-forms**: Form components with validation
-- **go-embed-tailwind**: CSS class utilities
+- **go-pico-embed**: Asset embedding and deployment
 
 Reference this skill when writing any `.templ` file.

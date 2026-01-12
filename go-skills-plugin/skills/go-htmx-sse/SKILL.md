@@ -711,9 +711,10 @@ func handleSSE(w http.ResponseWriter, r *http.Request) {
 ## Integration
 
 This skill works with:
+- **go-project-bootstrap**: Initial project setup
 - **go-htmx-core**: Handler patterns and routing
 - **go-templ-components**: HTML fragment rendering
 - **go-htmx-dashboard**: Real-time dashboard updates
-- **clawde SDK**: AI response streaming
+- **go-pico-embed**: Asset embedding and deployment
 
 Reference this skill when implementing real-time features.

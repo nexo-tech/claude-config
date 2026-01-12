@@ -33,8 +33,8 @@ project/
 │   └── components/
 │       └── card.templ
 ├── static/
-│   ├── htmx.min.js
 │   └── css/
+│       └── custom.css    # HTMX indicators, custom styles
 └── go.mod
 ```
 
@@ -226,25 +226,25 @@ func handleCreateItem(w http.ResponseWriter, r *http.Request) {
 ## Loading Indicators
 
 ```html
-<!-- Show spinner during request -->
+<!-- Show spinner during request (Pico CSS compatible) -->
 <button hx-post="/submit" hx-indicator="#spinner">
-    Submit
-    <span id="spinner" class="htmx-indicator">Loading...</span>
+    <span class="htmx-hide-on-request">Submit</span>
+    <span id="spinner" class="htmx-indicator" aria-busy="true">Sending...</span>
 </button>
 ```
 
-CSS (Tailwind):
+CSS (add to `static/css/custom.css`):
 ```css
+/* HTMX Loading Indicators */
 .htmx-indicator { display: none; }
-.htmx-request .htmx-indicator { display: inline; }
-.htmx-request.htmx-indicator { display: inline; }
+.htmx-request .htmx-indicator { display: inline-block; }
+.htmx-request.htmx-indicator { display: inline-block; }
+
+/* Hide content during request */
+.htmx-request .htmx-hide-on-request { display: none; }
 ```
 
-Or with opacity:
-```css
-.htmx-indicator { opacity: 0; transition: opacity 200ms; }
-.htmx-request .htmx-indicator { opacity: 1; }
-```
+Pico CSS also supports `aria-busy="true"` for native loading spinners on buttons.
 
 ---
 
@@ -487,9 +487,10 @@ Dynamic values:
 ## Integration
 
 This skill works with:
+- **go-project-bootstrap**: Initial project setup
 - **go-templ-components**: Template rendering
 - **go-htmx-sse**: Real-time updates
 - **go-htmx-forms**: Form validation
-- **go-embed-tailwind**: Asset embedding
+- **go-pico-embed**: Asset embedding
 
 Reference this skill when building any Go + HTMX handler.
