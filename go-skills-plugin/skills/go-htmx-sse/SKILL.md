@@ -664,32 +664,160 @@ templ ProgressContainer() {
 
 ## Auto-Scroll on New Messages
 
-### JavaScript Helper
+### Hyperscript Pattern (Recommended)
+
+Use hyperscript's built-in scroll command for automatic scrolling:
+
+```html
+<!-- Scroll on every new message -->
+<div
+    id="stream"
+    sse-swap="message"
+    hx-swap="beforeend"
+    _="on htmx:afterSwap scroll me to bottom"
+>
+    <!-- Messages appear here -->
+</div>
+```
+
+For containers that need scroll on initial load AND new content:
+
+```html
+<!-- Scroll on load AND on new messages -->
+<div
+    id="stream"
+    sse-swap="message"
+    hx-swap="beforeend"
+    _="on load scroll me to bottom then on htmx:afterSwap scroll me to bottom"
+>
+    <!-- Pre-populated history + new SSE messages -->
+</div>
+```
+
+> **Tip**: Use `then` to chain multiple event handlers in hyperscript.
+
+### Alternative: hx-swap scroll modifier
+
+HTMX also supports scroll modifiers in `hx-swap`:
+
+```html
+<div
+    sse-swap="message"
+    hx-swap="beforeend scroll:bottom"
+>
+```
+
+However, hyperscript provides more control and works reliably with SSE.
+
+See **go-hyperscript-patterns** for more hyperscript patterns.
+
+---
+
+## SSE with Pre-populated History
+
+A common pattern: load existing data from database, then stream new updates via SSE.
+
+### The Pattern
+
+1. Server renders existing history into the container
+2. SSE connection appends new events via `beforeend`
+3. Hyperscript scrolls to bottom on load and new content
+
+### Templ Implementation
 
 ```templ
-templ ChatContainer() {
-    <div
-        id="chat"
-        hx-ext="sse"
-        sse-connect="/chat/stream"
-        sse-swap="message"
-        hx-swap="beforeend scroll:bottom"
-        class="h-96 overflow-y-auto"
-    >
-        <!-- Messages appear here -->
+templ StreamWithHistory(streamID string, history []Message) {
+    <div hx-ext="sse" sse-connect={ "/events?id=" + streamID }>
+        <div
+            id="stream"
+            class="message-stream"
+            sse-swap="message,tool_use"
+            hx-swap="beforeend"
+            _="on load scroll me to bottom then on htmx:afterSwap scroll me to bottom"
+        >
+            // Pre-render existing history from database
+            for _, msg := range history {
+                @MessageCard(msg)
+            }
+        </div>
+        // Hidden handler for OOB-only events
+        <div sse-swap="status,result" hx-swap="none" style="display:none;"></div>
+    </div>
+}
+
+templ MessageCard(msg Message) {
+    <div class="message">
+        <span class="role">{ msg.Role }</span>
+        <div class="content">{ msg.Content }</div>
     </div>
 }
 ```
 
-With custom scroll behavior:
-```html
-<div
-    hx-ext="sse"
-    sse-connect="/chat"
-    sse-swap="message"
-    hx-swap="beforeend"
-    hx-on::sse-message="this.scrollTop = this.scrollHeight"
->
+### Handler
+
+```go
+func handleRunDetail(w http.ResponseWriter, r *http.Request) {
+    runID := r.PathValue("id")
+
+    // Load run with history from database
+    run, err := repo.GetRun(r.Context(), runID)
+    if err != nil {
+        http.Error(w, err.Error(), 500)
+        return
+    }
+
+    // Check if run is still active (use DB status, not in-memory state)
+    isLive := run.Status == "running" || run.Status == "paused"
+
+    data := RunDetailData{
+        Run:    run,
+        IsLive: isLive,
+    }
+
+    templates.RunDetail(data).Render(r.Context(), w)
+}
+```
+
+### Key Insights
+
+1. **Use database status for "live" detection** - Don't rely on in-memory executor state; it may not reflect reality after server restart or when viewing from different process.
+
+2. **SSE `beforeend` appends** - Pre-populated content stays, new events append after.
+
+3. **Scroll on load AND afterSwap** - Use hyperscript `then` to chain both handlers:
+   ```html
+   _="on load scroll me to bottom then on htmx:afterSwap scroll me to bottom"
+   ```
+
+4. **OOB events update other elements** - Status updates, result banners, etc. can be updated via OOB swaps while messages stream.
+
+### Live vs Static Views
+
+```templ
+templ RunDetail(data RunDetailData) {
+    if data.IsLive {
+        // Live: SSE connection with pre-populated history
+        <div hx-ext="sse" sse-connect={ "/events?id=" + data.Run.ID }>
+            <div
+                id="stream"
+                sse-swap="message"
+                hx-swap="beforeend"
+                _="on load scroll me to bottom then on htmx:afterSwap scroll me to bottom"
+            >
+                for _, msg := range data.Run.Messages {
+                    @MessageCard(msg)
+                }
+            </div>
+        </div>
+    } else {
+        // Completed: Static history only
+        <div id="stream" class="message-stream">
+            for _, msg := range data.Run.Messages {
+                @MessageCard(msg)
+            }
+        </div>
+    }
+}
 ```
 
 ---
@@ -907,6 +1035,7 @@ This skill works with:
 - **go-htmx-core**: Handler patterns and routing
 - **go-templ-components**: HTML fragment rendering
 - **go-htmx-dashboard**: Real-time dashboard updates
+- **go-hyperscript-patterns**: Client-side behavior (scroll, modals, toggles)
 - **go-pico-embed**: Asset embedding and deployment
 
 Reference this skill when implementing real-time features.

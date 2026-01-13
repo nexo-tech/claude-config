@@ -41,9 +41,10 @@ templ DashboardLayout(title string, activeNav string) {
                 { children... }
             </main>
         </div>
-        <!-- HTMX and SSE extension from CDN -->
+        <!-- HTMX, SSE extension, and Hyperscript from CDN -->
         <script src="https://cdn.jsdelivr.net/npm/htmx.org@2.0.8/dist/htmx.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/htmx-ext-sse@2.2.2/sse.js"></script>
+        <script src="https://unpkg.com/hyperscript.org@0.9.13"></script>
     </body>
     </html>
 }
@@ -350,6 +351,101 @@ templ TableWithControls(data TableData) {
 
 ---
 
+## Modal Dialogs
+
+Use native HTML `<dialog>` element with hyperscript for modal interactions. No JavaScript required.
+
+### Basic Modal Pattern
+
+```templ
+templ PageWithModal() {
+    // Button triggers HTMX load into modal content
+    <button
+        hx-get="/modal-content"
+        hx-target="#modal-content"
+        hx-swap="innerHTML"
+    >
+        Open Modal
+    </button>
+
+    // Native dialog with hyperscript event listener
+    <dialog id="my-dialog" _="on openModal call me.showModal()">
+        <article
+            id="modal-content"
+            _="on htmx:afterSwap send openModal to #my-dialog"
+        >
+            // Content loads here, then triggers dialog open
+        </article>
+    </dialog>
+}
+```
+
+**Key insight:** The modal content element sends a custom event to the dialog after HTMX swaps in new content. The dialog listens for this event and calls `showModal()`.
+
+### Modal Content with Close Button
+
+```templ
+templ ModalContent(title string) {
+    <header>
+        <h3>{ title }</h3>
+        // Pure HTML dialog close - no JavaScript needed
+        <form method="dialog">
+            <button type="submit" class="outline">&times;</button>
+        </form>
+    </header>
+    <div>
+        // Modal body content
+    </div>
+    <footer class="grid">
+        <form method="dialog">
+            <button type="submit" class="outline">Cancel</button>
+        </form>
+        <button type="submit" class="primary">Save</button>
+    </footer>
+}
+```
+
+**Key insight:** `<form method="dialog">` is native HTML for closing dialogs without any JavaScript.
+
+### Form Modal with Redirect
+
+For forms that should close modal and navigate after submit:
+
+```templ
+templ NewItemModal() {
+    <header>
+        <h3>New Item</h3>
+        <form method="dialog"><button type="submit" class="outline">&times;</button></form>
+    </header>
+    <form hx-post="/api/items" hx-swap="none">
+        <label>
+            Name
+            <input type="text" name="name" required autofocus/>
+        </label>
+        <footer class="grid">
+            <form method="dialog"><button type="submit" class="outline">Cancel</button></form>
+            <button type="submit">Create</button>
+        </footer>
+    </form>
+}
+```
+
+Server handler returns redirect header:
+
+```go
+func handleCreateItem(w http.ResponseWriter, r *http.Request) {
+    item := createItem(r)
+
+    // Tell HTMX to redirect after successful creation
+    w.Header().Set("HX-Redirect", "/items/"+item.ID)
+    w.WriteHeader(http.StatusOK)
+}
+```
+
+See **go-hyperscript-patterns** for more modal and event patterns.
+
+---
+
 ## Agent Control Panel
 
 ### Command Interface
@@ -507,8 +603,10 @@ templ StreamingOutput(runID string) {
         <div
             id="messages"
             class="space-y-2"
+            style="max-height: 600px; overflow-y: auto;"
             sse-swap="message,thinking,tool"
             hx-swap="beforeend"
+            _="on htmx:afterSwap scroll me to bottom"
         >
             <!-- Text and tool cards appear here -->
         </div>
@@ -525,6 +623,36 @@ templ StreamingOutput(runID string) {
     <div id="status"><!-- Updated by done event --></div>
 }
 
+### Streaming with Pre-populated History
+
+For viewing past runs with history + live updates:
+
+```templ
+templ RunDetailLive(run Run, messages []Message) {
+    <div hx-ext="sse" sse-connect={ "/api/agent/stream?run_id=" + run.ID }>
+        <div
+            id="messages"
+            class="space-y-2"
+            style="max-height: 600px; overflow-y: auto;"
+            sse-swap="message,tool"
+            hx-swap="beforeend"
+            _="on load scroll me to bottom then on htmx:afterSwap scroll me to bottom"
+        >
+            // Pre-render existing history from database
+            for _, msg := range messages {
+                @MessageCard(msg)
+            }
+            // SSE events append after existing content
+        </div>
+
+        <div sse-swap="tool_result,done" hx-swap="none" style="display:none;"></div>
+    </div>
+}
+```
+
+**Key pattern:** Use `on load ... then on htmx:afterSwap` to scroll on initial load AND new messages.
+
+```templ
 templ TextChunk(text string) {
     <span class="text-gray-300">{ text }</span>
 }
@@ -825,6 +953,7 @@ This skill works with:
 - **go-templ-components**: Component building
 - **go-htmx-sse**: Real-time streaming
 - **go-htmx-forms**: Form components
+- **go-hyperscript-patterns**: Client-side behavior (modals, scroll, toggles)
 - **go-pico-embed**: Asset embedding and deployment
 
 Reference this skill when building admin UIs and agent control panels.

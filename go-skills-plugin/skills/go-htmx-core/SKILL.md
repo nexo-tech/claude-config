@@ -486,6 +486,40 @@ Dynamic values:
 
 ---
 
+## Hyperscript Integration
+
+For client-side behavior that HTMX can't handle alone (modals, scrolling, toggles), use hyperscript - HTMX's companion library.
+
+Add after HTMX in your base layout:
+```html
+<script src="https://unpkg.com/htmx.org@2.0.4"></script>
+<script src="https://unpkg.com/hyperscript.org@0.9.13"></script>
+```
+
+Common patterns:
+
+```html
+<!-- Open native dialog modal -->
+<button hx-get="/modal" hx-target="#modal-content" hx-swap="innerHTML">Open</button>
+<dialog id="my-dialog" _="on openModal call me.showModal()">
+    <article id="modal-content" _="on htmx:afterSwap send openModal to #my-dialog"></article>
+</dialog>
+
+<!-- Auto-scroll container on new content -->
+<div id="stream"
+     sse-swap="message"
+     hx-swap="beforeend"
+     _="on htmx:afterSwap scroll me to bottom">
+</div>
+
+<!-- Toggle class -->
+<button _="on click toggle .active on #menu">Menu</button>
+```
+
+See **go-hyperscript-patterns** for complete hyperscript documentation.
+
+---
+
 ## Integration
 
 This skill works with:
@@ -493,6 +527,7 @@ This skill works with:
 - **go-templ-components**: Template rendering
 - **go-htmx-sse**: Real-time updates
 - **go-htmx-forms**: Form validation
+- **go-hyperscript-patterns**: Client-side behavior (modals, scrolling, toggles)
 - **go-pico-embed**: Asset embedding
 
 Reference this skill when building any Go + HTMX handler.
