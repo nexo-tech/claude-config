@@ -1,9 +1,20 @@
 ---
 name: go-concurrency-safe
 description: Correct concurrent Go. Avoid goroutine leaks, races, deadlocks. Real bugs documented. Use for any concurrent code.
+allowed-tools: Bash, Read, Write, Edit, Glob, Grep
 ---
 
 # Go Concurrency Safety
+
+## When to Use
+
+- Writing any code with goroutines
+- Managing shared state with mutexes
+- Implementing worker pools
+- Handling channel communication
+- Before running race detector
+
+---
 
 These patterns come from real bugs found in production code.
 
@@ -217,3 +228,15 @@ Before any concurrent code:
 - [ ] No silent drops in `select`?
 - [ ] Channel buffers bounded?
 - [ ] Tests run with `-race`?
+
+---
+
+## Integration
+
+This skill works with:
+- **go-context-patterns**: Context cancellation in goroutines
+- **go-htmx-sse**: Fan-out hub pattern
+- **go-testing-simple**: Race detector in tests
+- **go-claude-agents**: Agent streaming patterns
+
+Reference this skill before writing any concurrent code.

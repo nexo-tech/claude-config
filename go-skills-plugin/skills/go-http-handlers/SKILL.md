@@ -1,9 +1,20 @@
 ---
 name: go-http-handlers
 description: Clean HTTP handlers with dependency injection. stdlib only. Linear flow. Use for HTTP code.
+allowed-tools: Bash, Read, Write, Edit, Glob, Grep
 ---
 
 # Go HTTP Handlers
+
+## When to Use
+
+- Writing HTTP handlers for REST APIs
+- Building JSON API endpoints
+- Implementing request/response lifecycle
+- Adding middleware for cross-cutting concerns
+- Handling route parameters and query strings
+
+---
 
 ## Handler Struct with Dependencies
 
@@ -236,3 +247,15 @@ func main() {
     }
 }
 ```
+
+---
+
+## Integration
+
+This skill works with:
+- **go-clean-architecture**: Handler layer in the architecture stack
+- **go-context-patterns**: Context threading through handlers
+- **go-error-tracing**: Error handling and response patterns
+- **go-testing-simple**: Testing HTTP handlers with httptest
+
+Reference this skill when writing any HTTP endpoint.

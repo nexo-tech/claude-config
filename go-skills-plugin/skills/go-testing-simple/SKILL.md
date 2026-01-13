@@ -1,9 +1,20 @@
 ---
 name: go-testing-simple
 description: Simple Go testing. Table-driven, -race flag, no assertion libs. Use for writing tests.
+allowed-tools: Bash, Read, Write, Edit, Glob, Grep
 ---
 
 # Go Testing
+
+## When to Use
+
+- Writing unit tests for Go functions
+- Testing HTTP handlers with httptest
+- Creating table-driven test cases
+- Setting up test fixtures and helpers
+- Running tests with race detector
+
+---
 
 ## Always Run with Race Detector
 
@@ -275,3 +286,15 @@ func TestParallel(t *testing.T) {
 - [ ] `t.Parallel()` where possible
 - [ ] `t.Cleanup()` for teardown
 - [ ] No testify or assertion libraries
+
+---
+
+## Integration
+
+This skill works with:
+- **go-http-handlers**: HTTP handler testing patterns
+- **go-mongodb**: Database integration tests
+- **go-concurrency-safe**: Race detector usage
+- **go-error-tracing**: Testing error paths
+
+Reference this skill when writing any test file.

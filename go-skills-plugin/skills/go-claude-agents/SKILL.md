@@ -1,4 +1,20 @@
+---
+name: go-claude-agents
+description: Build agentic AI applications in Go using the clawde library (Claude Agents SDK / Claude Code SDK). Streaming, tool use, agent patterns, and SSE integration.
+allowed-tools: Bash, Read, Write, Edit, Glob, Grep
+---
+
 # Go Claude Agents
+
+## When to Use
+
+- Building AI-powered features with Claude
+- Implementing streaming chat interfaces
+- Creating agents with tool use
+- Integrating AI into Go web applications
+- Real-time AI response streaming via SSE
+
+---
 
 Build agentic AI applications in Go using the clawde library. This skill covers streaming, tool use, agent patterns, and SSE integration for real-time web interfaces.
 
@@ -933,3 +949,16 @@ data: tool_name|{"arg": "value"}
 event: done
 data: complete
 ```
+
+---
+
+## Integration
+
+This skill works with:
+- **go-htmx-sse**: SSE streaming for real-time AI responses
+- **go-templ-components**: Chat UI components
+- **go-htmx-dashboard**: AI widgets in dashboards
+- **go-project-bootstrap**: Project scaffolding with agent support
+- **go-concurrency-safe**: Managing agent goroutine lifecycles
+
+Reference this skill when building AI features in Go.

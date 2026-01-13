@@ -1,9 +1,20 @@
 ---
 name: go-context-patterns
 description: Context threading in Go. Cancellation, timeouts, values. All blocking ops take context. Use for any async or IO code.
+allowed-tools: Bash, Read, Write, Edit, Glob, Grep
 ---
 
 # Go Context Patterns
+
+## When to Use
+
+- Any function doing I/O or blocking operations
+- Implementing request timeouts
+- Handling cancellation signals
+- Passing request-scoped data (trace IDs)
+- Managing graceful shutdown
+
+---
 
 ## Context as First Parameter
 
@@ -198,3 +209,15 @@ if ctx.Err() == context.DeadlineExceeded {
     // timeout
 }
 ```
+
+---
+
+## Integration
+
+This skill works with:
+- **go-http-handlers**: Request context propagation
+- **go-mongodb**: Database operation timeouts
+- **go-htmx-sse**: SSE stream cancellation
+- **go-concurrency-safe**: Goroutine lifecycle management
+
+Reference this skill for any async or I/O code.

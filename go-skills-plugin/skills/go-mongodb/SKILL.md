@@ -1,9 +1,20 @@
 ---
 name: go-mongodb
 description: MongoDB patterns in Go. Official driver, proper indexes, same struct for bson+json. Use for database code.
+allowed-tools: Bash, Read, Write, Edit, Glob, Grep
 ---
 
 # Go MongoDB Patterns
+
+## When to Use
+
+- Implementing repository layer with MongoDB
+- CRUD operations with the official driver
+- Creating indexes for performance
+- Handling duplicate key errors
+- Running aggregation pipelines
+
+---
 
 ## Connection
 
@@ -289,3 +300,15 @@ var (
     ErrDuplicateEmail = errors.New("email already exists")
 )
 ```
+
+---
+
+## Integration
+
+This skill works with:
+- **go-clean-architecture**: Repository layer in the stack
+- **go-context-patterns**: Database operation timeouts
+- **go-error-tracing**: Translating database errors
+- **go-testing-simple**: Integration test setup
+
+Reference this skill when writing any MongoDB code.

@@ -1,9 +1,20 @@
 ---
 name: go-mental-model
 description: Reduce code complexity for human understanding. Minimize indirection, file jumps, and mental load. Use before writing any Go code.
+allowed-tools: Read, Glob, Grep
 ---
 
 # Go Mental Model
+
+## When to Use
+
+- Before designing a new feature or module
+- When reviewing code for complexity
+- Deciding whether to add an abstraction
+- Evaluating pull requests for indirection
+- Onboarding to understand code flow
+
+---
 
 **Core Principle: If you can't explain the code path in one sentence, it's too complex.**
 
@@ -97,3 +108,14 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
     // Total: 6 hops, impossible to hold in head
 }
 ```
+
+---
+
+## Integration
+
+This skill works with:
+- **go-clean-architecture**: Validates layer count and indirection
+- **go-http-handlers**: Ensures handler simplicity
+- **go-project-bootstrap**: Guides initial structure decisions
+
+Reference this skill before writing any Go code to validate complexity.

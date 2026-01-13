@@ -1,9 +1,20 @@
 ---
 name: go-error-tracing
 description: Error wrapping for fast debugging. Every error shows its path. Custom types for domain errors. Use for error handling.
+allowed-tools: Bash, Read, Write, Edit, Glob, Grep
 ---
 
 # Go Error Tracing
+
+## When to Use
+
+- Wrapping errors with context
+- Defining domain-specific errors
+- Translating database errors
+- Handling validation errors
+- Logging errors with full trace
+
+---
 
 ## Wrap Every Error
 
@@ -176,3 +187,15 @@ func GetUser(ctx context.Context, id string) (*User, error) {
     return user, nil
 }
 ```
+
+---
+
+## Integration
+
+This skill works with:
+- **go-http-handlers**: Error response patterns
+- **go-mongodb**: Database error translation
+- **go-config-logging**: Error logging with slog
+- **go-testing-simple**: Testing error paths
+
+Reference this skill for all error handling code.

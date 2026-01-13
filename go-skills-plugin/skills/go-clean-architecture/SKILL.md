@@ -1,9 +1,20 @@
 ---
 name: go-clean-architecture
 description: Clean Go architecture. Repository/Service/Handler layers, acyclic packages, functional composition, no globals. Use for project structure.
+allowed-tools: Read, Glob, Grep
 ---
 
 # Go Clean Architecture
+
+## When to Use
+
+- Starting a new Go project
+- Structuring packages and dependencies
+- Deciding where to put business logic
+- Wiring dependencies in main.go
+- Refactoring for better separation
+
+---
 
 ## Layers
 
@@ -141,3 +152,15 @@ type UserRepo struct {
     coll *mongo.Collection
 }
 ```
+
+---
+
+## Integration
+
+This skill works with:
+- **go-mental-model**: Complexity validation
+- **go-http-handlers**: Handler layer implementation
+- **go-mongodb**: Repository layer patterns
+- **go-project-bootstrap**: Initial project structure
+
+Reference this skill when designing project architecture.

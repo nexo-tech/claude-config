@@ -1,9 +1,20 @@
 ---
 name: go-config-logging
 description: Environment config and structured logging. JSON_LOGS for JSON output. No globals. Use for app setup.
+allowed-tools: Bash, Read, Write, Edit, Glob, Grep
 ---
 
 # Go Config and Logging
+
+## When to Use
+
+- Loading configuration from environment
+- Setting up structured logging with slog
+- Configuring log output format (JSON/text)
+- Wiring dependencies in main.go
+- Adding request logging middleware
+
+---
 
 ## Config from Environment
 
@@ -267,3 +278,15 @@ Load with a tool like `direnv` or source before running:
 ```bash
 source .env && go run .
 ```
+
+---
+
+## Integration
+
+This skill works with:
+- **go-project-bootstrap**: Initial configuration setup
+- **go-clean-architecture**: main.go wiring patterns
+- **go-http-handlers**: Request logging middleware
+- **go-error-tracing**: Error logging patterns
+
+Reference this skill when setting up application startup.

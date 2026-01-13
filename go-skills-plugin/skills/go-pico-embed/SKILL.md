@@ -1,3 +1,9 @@
+---
+name: go-pico-embed
+description: TE Pico Theme - Teenage Engineering inspired CSS theme for Pico CSS. Industrial minimalism with dense layouts and monospace typography.
+allowed-tools: Bash, Read, Write, Edit, Glob, Grep
+---
+
 # TE Pico Theme - Teenage Engineering Inspired CSS
 
 A light-mode, dense, industrial CSS theme for Pico CSS inspired by Teenage Engineering's design philosophy.
@@ -427,3 +433,15 @@ tr:hover td { background: var(--te-bg-surface); }
 @media (max-width: 768px) { .pipeline-board { grid-template-columns: 1fr; } .stats-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 480px) { .stats-grid { grid-template-columns: 1fr; } }
 ```
+
+---
+
+## Integration
+
+This skill works with:
+- **go-project-bootstrap**: CSS setup in new projects
+- **go-templ-components**: Component styling patterns
+- **go-htmx-dashboard**: Dashboard UI styling
+- **go-htmx-forms**: Form element styling
+
+Reference this skill when styling Go + HTMX applications.
