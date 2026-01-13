@@ -500,22 +500,29 @@ func handleAgentStream(w http.ResponseWriter, r *http.Request) {
 ### Streaming Output Component
 
 ```templ
-templ StreamingOutput() {
-    <div
-        hx-ext="sse"
-        sse-connect="/api/agent/stream"
-        class="space-y-2"
-    >
-        <div id="messages" sse-swap="message" hx-swap="beforeend">
-            <!-- Text messages appear here -->
+templ StreamingOutput(runID string) {
+    <!-- SSE Connection Wrapper -->
+    <div hx-ext="sse" sse-connect={ "/api/agent/stream?run_id=" + runID }>
+        <!-- Stream events that append content -->
+        <div
+            id="messages"
+            class="space-y-2"
+            sse-swap="message,thinking,tool"
+            hx-swap="beforeend"
+        >
+            <!-- Text and tool cards appear here -->
         </div>
-        <div id="tools" sse-swap="tool" hx-swap="beforeend">
-            <!-- Tool calls appear here -->
-        </div>
-        <div id="status" sse-swap="done" hx-swap="innerHTML">
-            <!-- Final status -->
-        </div>
+
+        <!-- Hidden handler for OOB-only events (REQUIRED for OOB to work!) -->
+        <div
+            sse-swap="tool_result,done,error"
+            hx-swap="none"
+            style="display:none;"
+        ></div>
     </div>
+
+    <!-- OOB targets (updated via hx-swap-oob in event HTML) -->
+    <div id="status"><!-- Updated by done event --></div>
 }
 
 templ TextChunk(text string) {
@@ -606,14 +613,16 @@ templ ActivityFeed() {
         <div class="px-4 py-3 border-b border-gray-200">
             <h3 class="font-medium text-gray-900">Recent Activity</h3>
         </div>
-        <div
-            hx-ext="sse"
-            sse-connect="/api/activity/stream"
-            sse-swap="activity"
-            hx-swap="afterbegin"
-            class="divide-y divide-gray-100 max-h-96 overflow-y-auto"
-        >
-            <!-- Activity items appear here -->
+        <!-- SSE Connection Wrapper -->
+        <div hx-ext="sse" sse-connect="/api/activity/stream">
+            <!-- Activity stream with sse-swap on child element -->
+            <div
+                sse-swap="activity"
+                hx-swap="afterbegin"
+                class="divide-y divide-gray-100 max-h-96 overflow-y-auto"
+            >
+                <!-- Activity items appear here -->
+            </div>
         </div>
     </div>
 }
@@ -703,15 +712,17 @@ templ LoadingPlaceholder() {
 
 ```templ
 templ ToastContainer() {
-    <div
-        id="toast-container"
-        class="fixed bottom-4 right-4 space-y-2 z-50"
-        hx-ext="sse"
-        sse-connect="/api/notifications"
-        sse-swap="toast"
-        hx-swap="beforeend"
-    >
-        <!-- Toasts appear here -->
+    <!-- SSE Connection Wrapper -->
+    <div hx-ext="sse" sse-connect="/api/notifications">
+        <!-- Toast container with sse-swap on child element -->
+        <div
+            id="toast-container"
+            class="fixed bottom-4 right-4 space-y-2 z-50"
+            sse-swap="toast"
+            hx-swap="beforeend"
+        >
+            <!-- Toasts appear here -->
+        </div>
     </div>
 }
 

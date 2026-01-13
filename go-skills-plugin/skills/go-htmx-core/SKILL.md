@@ -304,6 +304,8 @@ func handleToggleFavorite(w http.ResponseWriter, r *http.Request) {
 <span id="fav-count" hx-swap-oob="true">42</span>
 ```
 
+> **SSE Note**: When using OOB swaps with Server-Sent Events, the event must first be captured via `sse-swap`. If no element has `sse-swap` for an event type, the event is ignored entirely - including any OOB attributes in the HTML. Use a hidden handler: `<div sse-swap="my-event" hx-swap="none" style="display:none;"></div>`
+
 ---
 
 ## Confirmation Dialogs

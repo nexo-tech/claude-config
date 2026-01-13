@@ -19,6 +19,37 @@ Build real-time features using Server-Sent Events. Stream updates from Go to bro
 
 ---
 
+## CRITICAL: sse-swap is REQUIRED
+
+> **WARNING**: The `sse-swap` attribute is **REQUIRED** for HTMX to process SSE events. Without it, HTMX connects to the endpoint but ignores all incoming events!
+
+### Common Mistake
+
+```html
+<!-- WRONG - HTMX ignores all events! -->
+<div hx-ext="sse" sse-connect="/events">
+    <div id="output"></div>
+</div>
+```
+
+### Correct Pattern
+
+```html
+<!-- CORRECT - Events are captured and processed -->
+<div hx-ext="sse" sse-connect="/events">
+    <div id="output" sse-swap="message,update" hx-swap="beforeend"></div>
+</div>
+```
+
+### Requirements Checklist
+
+1. `hx-ext="sse"` - Enable the SSE extension
+2. `sse-connect` - URL to connect to
+3. **`sse-swap`** - **REQUIRED** - Comma-separated event types to listen for
+4. `hx-swap` - How to swap content (innerHTML, beforeend, etc.)
+
+---
+
 ## SSE vs WebSocket vs Polling
 
 | Feature | SSE | WebSocket | Polling |
@@ -198,49 +229,141 @@ Or from CDN:
 
 ### Connect to SSE Endpoint
 
+Use a wrapper element for the connection and child elements for event handling:
+
 ```html
+<!-- Wrapper establishes connection -->
 <div hx-ext="sse" sse-connect="/events">
-    <!-- Content updated by SSE -->
-</div>
-```
-
-### Swap on Specific Event
-
-```html
-<div hx-ext="sse" sse-connect="/events" sse-swap="message">
-    <!-- Swapped when 'message' event received -->
-</div>
-```
-
-### Multiple Event Handlers
-
-```html
-<div hx-ext="sse" sse-connect="/events">
-    <div sse-swap="notification" hx-swap="beforeend">
-        <!-- Notifications append here -->
+    <!-- Child handles specific events -->
+    <div sse-swap="message" hx-swap="beforeend">
+        <!-- Messages appear here -->
     </div>
-    <div sse-swap="status" hx-swap="innerHTML">
-        <!-- Status updates replace content -->
+</div>
+```
+
+### Multiple Event Types
+
+List event types in comma-separated format:
+
+```html
+<div hx-ext="sse" sse-connect="/events">
+    <div sse-swap="message,notification,alert" hx-swap="beforeend">
+        <!-- All three event types append here -->
+    </div>
+</div>
+```
+
+### Different Handlers for Different Events
+
+```html
+<div hx-ext="sse" sse-connect="/events">
+    <div id="messages" sse-swap="message" hx-swap="beforeend">
+        <!-- Messages append here -->
+    </div>
+    <div id="status" sse-swap="status" hx-swap="innerHTML">
+        <!-- Status replaces content -->
     </div>
 </div>
 ```
 
 ---
 
+## OOB-Only Events
+
+Some SSE events only update elements via Out-of-Band swaps (using `hx-swap-oob` in the HTML content). These events still need to be captured by `sse-swap`, even though they don't need a primary swap target.
+
+### The Problem
+
+OOB attributes in the HTML response are **only processed if the event is captured** via `sse-swap`. If no element has `sse-swap` for that event type, the event is ignored entirely.
+
+### Solution: Hidden Handler
+
+Use a hidden div with `hx-swap="none"` to capture OOB-only events:
+
+```html
+<div hx-ext="sse" sse-connect="/events">
+    <!-- Events that append content to the stream -->
+    <div id="stream" sse-swap="message,tool_use" hx-swap="beforeend">
+        <!-- Messages and tool cards appear here -->
+    </div>
+
+    <!-- OOB-only events (update other elements, no primary swap target) -->
+    <div sse-swap="tool_result,status,counter" hx-swap="none" style="display:none;"></div>
+</div>
+
+<!-- These elements are updated via hx-swap-oob in the event HTML -->
+<div id="tool-output-123"><!-- Updated by tool_result --></div>
+<div id="current-status"><!-- Updated by status --></div>
+<span id="message-count"><!-- Updated by counter --></span>
+```
+
+### Server-Side OOB HTML
+
+```go
+// tool_result event HTML with OOB swap
+func renderToolResult(toolID, output string) string {
+    return fmt.Sprintf(`<div id="tool-output-%s" hx-swap-oob="innerHTML:#tool-output-%s">
+        <pre>%s</pre>
+    </div>`, toolID, toolID, output)
+}
+```
+
+### Common OOB Use Cases
+
+| Event Type | OOB Target | Use Case |
+|------------|------------|----------|
+| `tool_result` | `#tool-output-{id}` | Update tool card with output |
+| `counter` | `#message-count` | Update running count |
+| `status` | `#status-badge` | Update status indicator |
+| `todos` | `#todo-list` | Replace todo panel |
+| `result` | `#result-banner` | Show completion banner |
+
+---
+
 ## Templ Components for SSE
 
-### Live Container
+### Complete Stream Container
+
+```templ
+templ StreamContainer(endpoint string) {
+    <!-- SSE Connection Wrapper -->
+    <div hx-ext="sse" sse-connect={ endpoint }>
+        <!-- Stream content - events append here -->
+        <div
+            id="stream"
+            class="space-y-2"
+            sse-swap="message,notification,tool_use"
+            hx-swap="beforeend"
+        >
+            <div class="text-gray-500">Connecting...</div>
+        </div>
+
+        <!-- Hidden handler for OOB-only events -->
+        <div
+            sse-swap="tool_result,status,done"
+            hx-swap="none"
+            style="display:none;"
+        ></div>
+    </div>
+
+    <!-- OOB targets (outside SSE wrapper is fine) -->
+    <div id="status-panel"><!-- Updated by status event --></div>
+    <div id="result-banner" style="display:none;"><!-- Updated by done event --></div>
+}
+```
+
+### Live Notifications
 
 ```templ
 templ LiveNotifications() {
-    <div
-        hx-ext="sse"
-        sse-connect="/notifications/stream"
-        sse-swap="notification"
-        hx-swap="beforeend"
-        class="space-y-2"
-    >
-        <!-- Notifications appear here -->
+    <div hx-ext="sse" sse-connect="/notifications/stream">
+        <div
+            sse-swap="notification"
+            hx-swap="beforeend"
+            class="space-y-2"
+        >
+            <!-- Notifications appear here -->
+        </div>
     </div>
 }
 ```
@@ -349,22 +472,29 @@ templ ToolUseCard(name string, input string) {
     </div>
 }
 
-templ AgentStreamContainer() {
-    <div
-        hx-ext="sse"
-        sse-connect="/agent/stream?prompt=Hello"
-        class="space-y-2"
-    >
-        <div sse-swap="chunk" hx-swap="beforeend" id="output">
-            <!-- Streaming text appears here -->
+templ AgentStreamContainer(prompt string) {
+    <!-- SSE Connection Wrapper -->
+    <div hx-ext="sse" sse-connect={ "/agent/stream?prompt=" + prompt }>
+        <!-- Stream events that append content -->
+        <div
+            id="output"
+            class="space-y-2"
+            sse-swap="chunk,tool,thinking"
+            hx-swap="beforeend"
+        >
+            <!-- Streaming text and tool cards appear here -->
         </div>
-        <div sse-swap="tool" hx-swap="beforeend">
-            <!-- Tool use cards appear here -->
-        </div>
-        <div sse-swap="done" hx-swap="innerHTML" id="status">
-            <!-- Completion status -->
-        </div>
+
+        <!-- OOB-only events (status updates, completion) -->
+        <div
+            sse-swap="done,error,tool_result"
+            hx-swap="none"
+            style="display:none;"
+        ></div>
     </div>
+
+    <!-- OOB targets -->
+    <div id="status"><!-- Updated by done/error events --></div>
 }
 ```
 
@@ -703,6 +833,68 @@ func handleSSE(w http.ResponseWriter, r *http.Request) {
             sse.SendData(data)
         }
     }
+}
+```
+
+---
+
+## Common Mistakes
+
+### 1. Missing sse-swap
+
+```html
+<!-- WRONG -->
+<div hx-ext="sse" sse-connect="/events">
+    <div id="output"></div>  <!-- No sse-swap! -->
+</div>
+
+<!-- CORRECT -->
+<div hx-ext="sse" sse-connect="/events">
+    <div id="output" sse-swap="message" hx-swap="beforeend"></div>
+</div>
+```
+
+### 2. sse-swap on the connection element
+
+```html
+<!-- WRONG - sse-swap should be on a child element -->
+<div hx-ext="sse" sse-connect="/events" sse-swap="message">
+</div>
+
+<!-- CORRECT - sse-swap on child -->
+<div hx-ext="sse" sse-connect="/events">
+    <div sse-swap="message" hx-swap="beforeend"></div>
+</div>
+```
+
+### 3. OOB events not captured
+
+```html
+<!-- WRONG - tool_result events ignored, OOB never processed -->
+<div hx-ext="sse" sse-connect="/events">
+    <div sse-swap="message" hx-swap="beforeend"></div>
+</div>
+
+<!-- CORRECT - Hidden handler captures OOB events -->
+<div hx-ext="sse" sse-connect="/events">
+    <div sse-swap="message" hx-swap="beforeend"></div>
+    <div sse-swap="tool_result" hx-swap="none" style="display:none;"></div>
+</div>
+```
+
+### 4. Returning JSON instead of HTML
+
+```go
+// WRONG - HTMX expects HTML
+func handlePause(w http.ResponseWriter, r *http.Request) {
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(map[string]string{"status": "paused"})
+}
+
+// CORRECT - Return HTML fragment
+func handlePause(w http.ResponseWriter, r *http.Request) {
+    w.Header().Set("Content-Type", "text/html")
+    templates.PauseButton(true).Render(r.Context(), w)
 }
 ```
 

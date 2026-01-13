@@ -98,6 +98,52 @@ func (h *UserHandler) handleError(w http.ResponseWriter, err error) {
 }
 ```
 
+## HTMX HTML Responses
+
+When building HTMX endpoints, return HTML fragments instead of JSON.
+
+```go
+// HTML response helper for templ components
+func (h *Handler) respondHTML(w http.ResponseWriter, status int, component templ.Component) {
+    w.Header().Set("Content-Type", "text/html; charset=utf-8")
+    w.WriteHeader(status)
+    component.Render(context.Background(), w)
+}
+
+// Alternative: render to string first (useful for SSE)
+func renderComponent(component templ.Component) string {
+    var buf bytes.Buffer
+    component.Render(context.Background(), &buf)
+    return buf.String()
+}
+
+func (h *Handler) respondHTMLString(w http.ResponseWriter, status int, html string) {
+    w.Header().Set("Content-Type", "text/html; charset=utf-8")
+    w.WriteHeader(status)
+    w.Write([]byte(html))
+}
+```
+
+### HTMX Handler Pattern
+
+```go
+func (h *Handler) ToggleFavorite(w http.ResponseWriter, r *http.Request) {
+    id := r.PathValue("id")
+
+    item, err := h.svc.ToggleFavorite(r.Context(), id)
+    if err != nil {
+        // Return error HTML, not JSON - HTMX expects HTML!
+        h.respondHTML(w, http.StatusOK, templates.ErrorBanner(err.Error()))
+        return
+    }
+
+    // Return updated component HTML for HTMX to swap
+    h.respondHTML(w, http.StatusOK, templates.FavoriteButton(item.IsFavorite))
+}
+```
+
+> **Important**: HTMX expects HTML responses. If you return JSON to an HTMX-triggered endpoint, it will render as raw text in the browser.
+
 ## Route Registration (Go 1.22+)
 
 ```go
