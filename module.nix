@@ -74,7 +74,8 @@ let
 
   # Create ocgo wrapper script that uses a custom OpenCode config
   ocgoScript = pkgs.writeShellScriptBin "ocgo" ''
-    export OPENCODE_CONFIG="$HOME/.config/opencode-dev"
+    export OPENCODE_CONFIG="$HOME/.config/opencode-dev/opencode.json"
+    export OPENCODE_CONFIG_DIR="$HOME/.config/opencode-dev"
     exec opencode "$@"
   '';
 

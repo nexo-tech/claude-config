@@ -48,7 +48,7 @@ Import in your Home Manager config:
 | `~/.claude/settings.json` | Permissions, hooks, attribution settings |
 | `~/.claude/commands/` | Slash commands |
 | `~/.claude/skills/` | Global skills |
-| `~/.config/opencode-dev/skill/` | OpenCode Go skills via custom config |
+| `~/.config/opencode-dev/skill/` | OpenCode Go skills via custom config dir |
 
 ## macOS Bonus
 
