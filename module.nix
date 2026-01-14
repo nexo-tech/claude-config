@@ -1,9 +1,12 @@
-{ self, anthropic-skills, claude-plugins-official, tgnotify }:
+{ self, anthropic-skills, claude-plugins-official, tgnotify, nixpkgs-unstable }:
 { config, lib, pkgs, ... }:
 
 let
   cfg = config.programs.claude-config;
   system = pkgs.stdenv.hostPlatform.system;
+
+  # Unstable packages for OpenCode
+  pkgs-unstable = import nixpkgs-unstable { inherit system; };
 
   # Default permissions for Claude Code
   defaultPermissions = [
@@ -75,6 +78,39 @@ let
     exec opencode "$@"
   '';
 
+  # OpenCode configuration
+  opencodeConfig = builtins.toJSON {
+    "$schema" = "https://opencode.ai/config.json";
+    model = "anthropic/claude-sonnet-4-5";
+    permission = {
+      edit = "allow";
+      write = "allow";
+      bash = "allow";
+    };
+  };
+
+  # OpenCode tgnotify plugin
+  opencodeTgnotifyPlugin = ''
+    import { execSync } from "child_process";
+
+    export const TgNotifyPlugin = async ({ project }) => ({
+      event: async ({ event }) => {
+        if (event.type === "session.idle" || event.type === "session.error") {
+          const payload = JSON.stringify({
+            hook_event_name: event.type === "session.idle" ? "Stop" : "Notification",
+            cwd: project.path,
+            message: event.type === "session.error" ? "Session error" : "",
+            transcript_path: "",
+            tool_name: "opencode"
+          });
+          try {
+            execSync("${tgnotifyPkg}/bin/tgnotify", { input: payload, stdio: ["pipe", "inherit", "inherit"] });
+          } catch {}
+        }
+      }
+    });
+  '';
+
 in {
   options.programs.claude-config = {
     enable = lib.mkEnableOption "Claude Code configuration";
@@ -88,8 +124,8 @@ in {
   };
 
   config = lib.mkIf cfg.enable {
-    # Add ccgo and ocgo commands to PATH
-    home.packages = [ ccgoScript ocgoScript ];
+    # Add ccgo/ocgo commands and opencode to PATH
+    home.packages = [ ccgoScript ocgoScript pkgs-unstable.opencode ];
 
     # Claude Code settings.json
     home.file.".claude/settings.json".source =
@@ -115,5 +151,16 @@ in {
     home.file.".claude/agents/code-simplifier.md".source =
       codeSimplifierAgentPath;
 
+    # OpenCode configuration
+    home.file.".config/opencode-dev/opencode.json".source =
+      pkgs.writeText "opencode.json" opencodeConfig;
+
+    # OpenCode agents - symlink Claude Code agents
+    home.file.".config/opencode-dev/agent/code-simplifier.md".source =
+      codeSimplifierAgentPath;
+
+    # OpenCode tgnotify plugin
+    home.file.".config/opencode-dev/plugin/tgnotify.ts".text =
+      opencodeTgnotifyPlugin;
   };
 }
