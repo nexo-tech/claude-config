@@ -1,8 +1,9 @@
 {
-  description = "Claude Code configuration flake - settings, commands, and skills";
+  description = "Claude Code and OpenCode configuration flake - settings, commands, skills, and agents";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-25.11";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
 
     # Anthropic's official skills repository
     anthropic-skills = {
@@ -16,16 +17,16 @@
       flake = false;
     };
 
-    # Telegram notifications for Claude Code hooks
+    # Telegram notifications for Claude Code and OpenCode hooks
     tgnotify = {
       url = "github:nexo-tech/tgnotify";
-      inputs.nixpkgs.follows = "nixpkgs";
+      inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
   };
 
-  outputs = { self, nixpkgs, anthropic-skills, claude-plugins-official, tgnotify }: {
+  outputs = { self, nixpkgs, nixpkgs-unstable, anthropic-skills, claude-plugins-official, tgnotify }: {
     homeManagerModules.default = import ./module.nix {
-      inherit self anthropic-skills claude-plugins-official tgnotify;
+      inherit self anthropic-skills claude-plugins-official tgnotify nixpkgs-unstable;
     };
   };
 }
