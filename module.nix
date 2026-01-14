@@ -28,9 +28,7 @@ let
 
   # Generate the settings JSON
   settingsJson = builtins.toJSON ({
-    permissions = {
-      allow = defaultPermissions ++ cfg.extraPermissions;
-    };
+    permissions = { allow = defaultPermissions ++ cfg.extraPermissions; };
     # Disable Claude attribution in git commits and PRs
     attribution = {
       commit = "";
@@ -60,14 +58,21 @@ let
   skillCreatorPath = "${anthropic-skills}/skills/skill-creator";
 
   # Path to code-simplifier agent
-  codeSimplifierAgentPath = "${claude-plugins-official}/plugins/code-simplifier/agents/code-simplifier.md";
+  codeSimplifierAgentPath =
+    "${claude-plugins-official}/plugins/code-simplifier/agents/code-simplifier.md";
 
-  # Go skills plugin for ccgo command
+  # Go skills plugin for ccgo/ocgo commands
   goSkillsPluginPath = "${srcPath}/go-skills-plugin";
 
   # Create ccgo wrapper script that loads Go skills plugin
   ccgoScript = pkgs.writeShellScriptBin "ccgo" ''
     exec claude --plugin-dir ${goSkillsPluginPath} "$@"
+  '';
+
+  # Create ocgo wrapper script that uses a custom OpenCode config
+  ocgoScript = pkgs.writeShellScriptBin "ocgo" ''
+    export OPENCODE_CONFIG="$HOME/.config/opencode-dev"
+    exec opencode "$@"
   '';
 
 in {
@@ -76,15 +81,15 @@ in {
 
     extraPermissions = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [];
+      default = [ ];
       description = "Additional permissions to add to Claude Code settings";
       example = [ "Edit" "Write" ];
     };
   };
 
   config = lib.mkIf cfg.enable {
-    # Add ccgo command to PATH
-    home.packages = [ ccgoScript ];
+    # Add ccgo and ocgo commands to PATH
+    home.packages = [ ccgoScript ocgoScript ];
 
     # Claude Code settings.json
     home.file.".claude/settings.json".source =
@@ -100,7 +105,15 @@ in {
       recursive = true;
     };
 
+    # Go skills for OpenCode (custom config directory)
+    home.file.".config/opencode-dev/skill" = {
+      source = "${goSkillsPluginPath}/skills";
+      recursive = true;
+    };
+
     # Agents - code-simplifier from Anthropic's official plugins repo
-    home.file.".claude/agents/code-simplifier.md".source = codeSimplifierAgentPath;
+    home.file.".claude/agents/code-simplifier.md".source =
+      codeSimplifierAgentPath;
+
   };
 }
