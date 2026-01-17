@@ -67,9 +67,12 @@ let
   # Go skills plugin for ccgo/ocgo commands
   goSkillsPluginPath = "${srcPath}/go-skills-plugin";
 
-  # Create ccgo wrapper script that loads Go skills plugin
+  # Dev stuff plugin for development utilities (smdctl, etc.)
+  devStuffPluginPath = "${srcPath}/dev-stuff-plugin";
+
+  # Create ccgo wrapper script that loads Go skills and dev-stuff plugins
   ccgoScript = pkgs.writeShellScriptBin "ccgo" ''
-    exec claude --plugin-dir ${goSkillsPluginPath} "$@"
+    exec claude --plugin-dir ${goSkillsPluginPath} --plugin-dir ${devStuffPluginPath} "$@"
   '';
 
   # Create ocgo wrapper script that uses a custom OpenCode config
@@ -145,6 +148,12 @@ in {
     # Go skills for OpenCode (custom config directory)
     home.file.".config/opencode-dev/skill" = {
       source = "${goSkillsPluginPath}/skills";
+      recursive = true;
+    };
+
+    # Dev stuff skills for OpenCode (smdctl-deploy, etc.)
+    home.file.".config/opencode-dev/skill/smdctl-deploy" = {
+      source = "${devStuffPluginPath}/skills/smdctl-deploy";
       recursive = true;
     };
 
