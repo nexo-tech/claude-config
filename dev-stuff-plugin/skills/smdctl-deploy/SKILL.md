@@ -13,6 +13,8 @@ Deploy applications as persistent systemd user services. Zero sudo required for 
 2. Run `smdctl run -f smdctl.yml`
 3. Verify with `smdctl status <name>`
 
+If `tasks:` are present in `smdctl.yml`, `smdctl run -f smdctl.yml` will also create/enable/start the corresponding systemd timers.
+
 ## Configuration File (smdctl.yml)
 
 ### Minimal Example
@@ -52,6 +54,23 @@ no_new_privileges: true       # Prevent privilege escalation
 # Optional - Resource Limits
 limit_nofile: 65536           # File descriptor limit
 tasks_max: 4096               # Max number of tasks
+
+# Optional - Scheduled tasks (systemd timers)
+# Each task becomes a oneshot .service + a .timer.
+# Tasks inherit service workdir + env by default.
+tasks:
+  - name: cleanup                 # Task name (alphanumeric, -, _)
+    description: Daily cleanup
+    command: /usr/bin/bash        # Binary or script runner
+    args: [/opt/myapp/cleanup.sh] # Script path or args
+    schedule:
+      on_calendar: "daily 03:30"  # Run daily at 03:30 local time
+      persistent: true            # Default true
+
+  - name: report
+    command: /opt/myapp/bin/report
+    schedule:
+      on_unit_active_sec: 6h
 
 # Optional - Dependencies
 after:                        # Start after these targets
@@ -165,6 +184,9 @@ smdctl restart myapp
 | `smdctl run -f smdctl.yml` | Deploy from config |
 | `smdctl ps` | List running services |
 | `smdctl ps -a` | List all services |
+| `smdctl tasks` | List scheduled tasks (timers) |
+| `smdctl tasks -a` | List all tasks (including inactive) |
+| `smdctl tasks NAME` | List tasks for a service |
 | `smdctl status NAME` | Detailed status |
 | `smdctl logs NAME` | View logs |
 | `smdctl logs -f NAME` | Follow logs |
@@ -179,6 +201,13 @@ smdctl restart myapp
 - Service files: `~/.config/systemd/user/smdctl-{name}.service`
 - Env files: `~/.config/smdctl/env/{name}.env`
 - Log files: `~/.config/smdctl/logs/{name}.log`
+
+Task timers (from `tasks:` in YAML):
+
+- Task timer units: `~/.config/systemd/user/smdctl-<svc>-task-<task>.timer`
+- Task oneshot units: `~/.config/systemd/user/smdctl-<svc>-task-<task>.service`
+- Task env files: `~/.config/smdctl/env/<svc>-task-<task>.env`
+- Task log files: `~/.config/smdctl/logs/<svc>-task-<task>.log`
 
 ## Troubleshooting
 
