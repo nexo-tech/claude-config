@@ -22,11 +22,17 @@
       url = "github:nexo-tech/tgnotify";
       inputs.nixpkgs.follows = "nixpkgs-unstable";
     };
+
+    # Humanizer skill - remove AI writing patterns
+    humanizer = {
+      url = "github:blader/humanizer";
+      flake = false;
+    };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, anthropic-skills, claude-plugins-official, tgnotify }: {
+  outputs = { self, nixpkgs, nixpkgs-unstable, anthropic-skills, claude-plugins-official, tgnotify, humanizer }: {
     homeManagerModules.default = import ./module.nix {
-      inherit self anthropic-skills claude-plugins-official tgnotify nixpkgs-unstable;
+      inherit self anthropic-skills claude-plugins-official tgnotify nixpkgs-unstable humanizer;
     };
   };
 }

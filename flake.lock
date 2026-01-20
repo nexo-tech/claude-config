@@ -50,13 +50,29 @@
         "type": "github"
       }
     },
+    "humanizer": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1768809452,
+        "narHash": "sha256-4gh92+5AQ6AH7BUduKXLM3vLA3FQNvX5sGn4tJ2Pxh8=",
+        "owner": "blader",
+        "repo": "humanizer",
+        "rev": "3b117912054aab527533523a173999df0bce862f",
+        "type": "github"
+      },
+      "original": {
+        "owner": "blader",
+        "repo": "humanizer",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1768621446,
-        "narHash": "sha256-6YwHV1cjv6arXdF/PQc365h1j+Qje3Pydk501Rm4Q+4=",
+        "lastModified": 1768773494,
+        "narHash": "sha256-XsM7GP3jHlephymxhDE+/TKKO1Q16phz/vQiLBGhpF4=",
         "owner": "nixos",
         "repo": "nixpkgs",
-        "rev": "72ac591e737060deab2b86d6952babd1f896d7c5",
+        "rev": "77ef7a29d276c6d8303aece3444d61118ef71ac2",
         "type": "github"
       },
       "original": {
@@ -86,6 +102,7 @@
       "inputs": {
         "anthropic-skills": "anthropic-skills",
         "claude-plugins-official": "claude-plugins-official",
+        "humanizer": "humanizer",
         "nixpkgs": "nixpkgs",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "tgnotify": "tgnotify"

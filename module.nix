@@ -1,4 +1,4 @@
-{ self, anthropic-skills, claude-plugins-official, tgnotify, nixpkgs-unstable }:
+{ self, anthropic-skills, claude-plugins-official, tgnotify, nixpkgs-unstable, humanizer }:
 { config, lib, pkgs, ... }:
 
 let
@@ -59,6 +59,9 @@ let
 
   # Path to Anthropic's skill-creator
   skillCreatorPath = "${anthropic-skills}/skills/skill-creator";
+
+  # Path to humanizer skill
+  humanizerPath = "${humanizer}";
 
   # Path to code-simplifier agent
   codeSimplifierAgentPath =
@@ -142,6 +145,12 @@ in {
     # Skills - skill-creator from Anthropic's official repo
     home.file.".claude/skills/skill-creator" = {
       source = skillCreatorPath;
+      recursive = true;
+    };
+
+    # Skills - humanizer from blader/humanizer
+    home.file.".claude/skills/humanizer" = {
+      source = humanizerPath;
       recursive = true;
     };
 
