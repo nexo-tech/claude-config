@@ -41,6 +41,8 @@ workdir: /opt/myapp           # Working directory (default: /)
 environment:                   # Environment variables
   PORT: "3000"
   NODE_ENV: production
+  GITHUB_TOKEN: ${GITHUB_TOKEN}  # Reads from current shell env
+  API_KEY: ${API_KEY}            # Missing vars become empty with warning
 restart: always               # no | on-failure | always (default: always)
 
 # Optional - Timeouts
@@ -158,24 +160,36 @@ smdctl logs -f myapp
 ### Update Existing Service
 
 ```bash
-# 1. Stop service
-smdctl stop myapp
-
-# 2. Update smdctl.yml or code
-
-# 3. Remove and redeploy
-smdctl rm myapp
+# Redeploy from YAML config (updates service in place, preserves env file)
 smdctl run -f smdctl.yml
+
+# Or just restart after code-only changes
+smdctl restart myapp
 ```
+
+**Note**: `smdctl run` updates the service file in place without removing the env file. Your customized environment variables are preserved.
 
 ### Environment Variable Updates
 
 ```bash
-# Interactive editor
+# Interactive editor for runtime env vars
 smdctl env myapp
-# Then restart
+# Then restart to apply
 smdctl restart myapp
 ```
+
+### Environment Variable Substitution
+
+Use `${VAR}` syntax in smdctl.yml to read from your current shell environment at deploy time:
+
+```yaml
+environment:
+  GITHUB_TOKEN: ${GITHUB_TOKEN}
+  DATABASE_URL: ${DATABASE_URL}
+  PORT: "3000"  # Literal value
+```
+
+When you run `smdctl run -f smdctl.yml`, the current values of `$GITHUB_TOKEN` and `$DATABASE_URL` are read from your shell and written to the service's env file. Missing variables become empty strings with a warning.
 
 ## Essential Commands
 
