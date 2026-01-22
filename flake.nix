@@ -28,11 +28,17 @@
       url = "github:blader/humanizer";
       flake = false;
     };
+
+    # Writing interviewer skill - writing improvements
+    writing-interviewer = {
+      url = "github:KarthikRaju391/writing-interviewer-skill";
+      flake = false;
+    };
   };
 
-  outputs = { self, nixpkgs, nixpkgs-unstable, anthropic-skills, claude-plugins-official, tgnotify, humanizer }: {
+  outputs = { self, nixpkgs, nixpkgs-unstable, anthropic-skills, claude-plugins-official, tgnotify, humanizer, writing-interviewer }: {
     homeManagerModules.default = import ./module.nix {
-      inherit self anthropic-skills claude-plugins-official tgnotify nixpkgs-unstable humanizer;
+      inherit self anthropic-skills claude-plugins-official tgnotify nixpkgs-unstable humanizer writing-interviewer;
     };
   };
 }

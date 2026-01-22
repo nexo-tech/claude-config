@@ -1,4 +1,4 @@
-{ self, anthropic-skills, claude-plugins-official, tgnotify, nixpkgs-unstable, humanizer }:
+{ self, anthropic-skills, claude-plugins-official, tgnotify, nixpkgs-unstable, humanizer, writing-interviewer }:
 { config, lib, pkgs, ... }:
 
 let
@@ -62,6 +62,9 @@ let
 
   # Path to humanizer skill
   humanizerPath = "${humanizer}";
+
+  # Path to writing-interviewer skill
+  writingInterviewerPath = "${writing-interviewer}";
 
   # Path to code-simplifier agent
   codeSimplifierAgentPath =
@@ -151,6 +154,12 @@ in {
     # Skills - humanizer from blader/humanizer
     home.file.".claude/skills/humanizer" = {
       source = humanizerPath;
+      recursive = true;
+    };
+
+    # Skills - writing-interviewer for writing improvements
+    home.file.".claude/skills/writing-interviewer" = {
+      source = writingInterviewerPath;
       recursive = true;
     };
 

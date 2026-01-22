@@ -105,7 +105,8 @@
         "humanizer": "humanizer",
         "nixpkgs": "nixpkgs",
         "nixpkgs-unstable": "nixpkgs-unstable",
-        "tgnotify": "tgnotify"
+        "tgnotify": "tgnotify",
+        "writing-interviewer": "writing-interviewer"
       }
     },
     "systems": {
@@ -141,6 +142,22 @@
       "original": {
         "owner": "nexo-tech",
         "repo": "tgnotify",
+        "type": "github"
+      }
+    },
+    "writing-interviewer": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1768497705,
+        "narHash": "sha256-PPXyHuapH7T94lbez53uc7FpmiF6FNUZfiownyxKItc=",
+        "owner": "KarthikRaju391",
+        "repo": "writing-interviewer-skill",
+        "rev": "313a3177453ce9767a667b777465c9c807a12a97",
+        "type": "github"
+      },
+      "original": {
+        "owner": "KarthikRaju391",
+        "repo": "writing-interviewer-skill",
         "type": "github"
       }
     }
