@@ -63,8 +63,8 @@ let
   # Path to humanizer skill
   humanizerPath = "${humanizer}";
 
-  # Path to writing-interviewer skill
-  writingInterviewerPath = "${writing-interviewer}";
+  # Path to writing-interviewer skill (nested in skills/ subdirectory)
+  writingInterviewerPath = "${writing-interviewer}/skills/writing-interviewer";
 
   # Path to code-simplifier agent
   codeSimplifierAgentPath =
