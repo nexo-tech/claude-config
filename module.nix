@@ -30,8 +30,12 @@ let
   # tgnotify package for the current system
   tgnotifyPkg = tgnotify.packages.${system}.default;
 
+  # Map themeMode to Claude Code theme name
+  claudeTheme = if cfg.themeMode == "dark" then "dark" else "light";
+
   # Generate the settings JSON
   settingsJson = builtins.toJSON ({
+    theme = claudeTheme;
     permissions = { allow = defaultPermissions ++ cfg.extraPermissions; };
     # Disable Claude attribution in git commits and PRs
     attribution = {
