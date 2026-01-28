@@ -93,6 +93,11 @@ let
     exec opencode "$@"
   '';
 
+  # Unlock macOS keychain (for codesigning, Claude, etc)
+  claude-unlock = pkgs.writeShellScriptBin "claude-unlock" ''
+    security unlock-keychain ~/Library/Keychains/login.keychain-db
+  '';
+
   # OpenCode configuration
   opencodeConfig = builtins.toJSON {
     "$schema" = "https://opencode.ai/config.json";
@@ -154,7 +159,15 @@ in {
 
   config = lib.mkIf cfg.enable {
     # Add ccgo/ocgo commands and opencode to PATH
-    home.packages = [ ccgoScript ocgoScript pkgs-unstable.opencode ];
+    home.packages = [
+      ccgoScript
+      ocgoScript
+      pkgs-unstable.opencode
+      pkgs-unstable.claude-code
+      pkgs-unstable.codex
+    ] ++ lib.optionals pkgs.stdenv.isDarwin [
+      claude-unlock
+    ];
 
     # Claude Code settings.json
     home.file.".claude/settings.json".source =
