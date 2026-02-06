@@ -163,8 +163,6 @@ in {
       ccgoScript
       ocgoScript
       pkgs-unstable.opencode
-      pkgs-unstable.claude-code
-      pkgs-unstable.codex
     ] ++ lib.optionals pkgs.stdenv.isDarwin [
       claude-unlock
     ];
